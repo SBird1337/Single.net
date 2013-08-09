@@ -11,13 +11,13 @@ namespace Single.Core.Text
 
         public string getReadableFormat(string input)
         {
-            input = input.Replace("¶", "\r\n").Replace("<AE>", "Ä").Replace("<OE>", "Ö").Replace("<UE>", "Ü").Replace("<ae>", "ä").Replace("<oe>", "ö").Replace("<ue>", "ü").Replace("_", " ");
+            input = input.Replace("<BR>", "\r\n").Replace("<AE>", "Ä").Replace("<OE>", "Ö").Replace("<UE>", "Ü").Replace("<ae>", "ä").Replace("<oe>", "ö").Replace("<ue>", "ü").Replace("_", " ");
             return input;
         }
 
         public string getTableFormat(string input)
         {
-            input = input.Replace("\r\n", "¶").Replace("Ä", "<AE>").Replace("Ö", "<OE>").Replace("Ü", "<UE>").Replace("ä", "<ae>").Replace("ö", "<oe>").Replace("ü", "<ue>").Replace(" ", "_");
+            input = input.Replace("\r\n", "<BR>").Replace("Ä", "<AE>").Replace("Ö", "<OE>").Replace("Ü", "<UE>").Replace("ä", "<ae>").Replace("ö", "<oe>").Replace("ü", "<ue>").Replace(" ", "_");
             return input;
         }
 
