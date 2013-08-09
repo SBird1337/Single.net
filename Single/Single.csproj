@@ -51,13 +51,13 @@
     <Compile Include="Single.Core.Text\NormalParser.cs" />
     <Compile Include="Single.Core.Text\RomStringHelper.cs" />
     <Compile Include="Single.Core.Text\Table.cs" />
+    <Compile Include="Single.Core\ArrayHelper.cs" />
     <Compile Include="Single.Core\BiDictionary.cs" />
     <Compile Include="Single.Core\IRepointable.cs" />
     <Compile Include="Single.Core\IRomWritable.cs" />
     <Compile Include="Single.Core\PointerTable.cs" />
     <Compile Include="Single.Core\Rom.cs" />
     <Compile Include="Single.Core\Romheader.cs" />
-    <Compile Include="Single.Core\StreamHelper.cs" />
     <Compile Include="Single.Graphics\GraphicHelper.cs" />
     <Compile Include="Single.Graphics\Palette.cs" />
     <Compile Include="Single.Graphics\Tile.cs" />
