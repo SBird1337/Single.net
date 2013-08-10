@@ -24,7 +24,7 @@ namespace Single.Core.Text
         {
             dict = new BiDictionary<string, byte>();
             FileStream fs = new FileStream(path, FileMode.Open);
-            StreamReader sr = new StreamReader(fs, Encoding.Default);
+            StreamReader sr = new StreamReader(fs, Encoding.UTF8);
             string table = sr.ReadToEnd();
             fs.Close();
             fs.Dispose();

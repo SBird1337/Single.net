@@ -31,7 +31,7 @@ namespace Single.Core
             for (int i = 0; i < count; ++i)
             {
                 UInt32 pointer = context.ReadUInt32();
-                if (((pointer & 0x1FFFFFF) >> 20) > 1)
+                if (((pointer & 0x1FFFFFF) >> 24) > 0)
                 {
                     throw new Exception(String.Format("An dieser Stelle wurde kein Pointer gefunden: {0}", pointer.ToString("X")));
                 }

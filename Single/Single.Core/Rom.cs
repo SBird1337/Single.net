@@ -302,14 +302,14 @@ namespace Single.Core
         public UInt32 GetFreeSpaceOffset(int Length, byte freespace, byte align)
         {
             int counter = 0;
-            romstream.Position += romstream.Position % align;
+            romstream.Position -= romstream.Position % align;
             UInt32 Offset = (UInt32)romstream.Position;
             while (counter < Length && romstream.Position < romstream.Length)
             {
                 if (romReader.ReadByte() != freespace)
                 {
                     counter = 0;
-                    Offset = (UInt32)(romstream.Position + romstream.Position % 4);
+                    Offset = (UInt32)((romstream.Position - romstream.Position % align) + align);
                 }
                 else
                 {
