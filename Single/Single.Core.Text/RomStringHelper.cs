@@ -37,6 +37,18 @@ namespace Single.Core.Text
             return output.ToArray();
         }
 
+        public static byte[] ReadRomString(Rom input, byte endByte = 0xFF)
+        {
+            List<byte> output = new List<byte>();
+            byte current = input.ReadByte();
+            while (current != endByte)
+            {
+                output.Add(current);
+                current = input.ReadByte();
+            }
+            return output.ToArray();
+        }
+
         #endregion
     }
 }
