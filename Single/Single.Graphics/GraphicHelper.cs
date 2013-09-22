@@ -21,11 +21,11 @@ namespace Single.Graphics
         /// <param name="map">Ausgabe Tilemap</param>
         /// <param name="is8bpp">Wenn true: Erstellt ein 8bpp Tileset / Palette</param>
         /// <returns>Fertiges Tileset Objekt</returns>
-        public static Tileset CreateIndexedTilesetMap(Bitmap img, out Palette pal, out Tilemap map, bool is8bpp = false, bool isEncoded = false)
+        public static Tileset CreateIndexedTilesetMap(Bitmap img, out Palette pal, out Tilemap map, byte paletteMap = 0, bool is8bpp = false, bool isEncoded = false)
         {
             if (img.PixelFormat == System.Drawing.Imaging.PixelFormat.Format4bppIndexed || img.PixelFormat == System.Drawing.Imaging.PixelFormat.Format8bppIndexed)
             {
-                return Tileset.FromBitmap(img, isEncoded, out pal, out map);
+                return Tileset.FromBitmap(img, isEncoded, out pal, out map, paletteMap);
             }
             List<Color> colors = new List<Color>();
             List<byte> indexes = new List<byte>();

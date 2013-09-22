@@ -7,4 +7,3 @@ D:\Users\Philipp\Documents\GitHub\Single.net\Single\obj\Release\Single.dll
 D:\Users\Philipp\Documents\GitHub\Single.net\Single\obj\Release\Single.pdb
 D:\Users\Philipp\Documents\GitHub\Single.net\Single\bin\Release\Single.dll
 D:\Users\Philipp\Documents\GitHub\Single.net\Single\bin\Release\Single.pdb
-D:\Users\Philipp\Documents\GitHub\Single.net\Single\obj\Release\Single.csprojResolveAssemblyReference.cache

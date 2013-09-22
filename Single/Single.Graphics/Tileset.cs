@@ -70,7 +70,7 @@ namespace Single.Graphics
         /// <param name="pal">Zurückgegebene Palette</param>
         /// <param name="map">Zurückgegebene Tilemap</param>
         /// <returns>Tileset, welches durch das Bitmap definiert wurde</returns>
-        public static Tileset FromBitmap(Bitmap bmp, bool isEncoded, out Palette pal, out Tilemap map)
+        public static Tileset FromBitmap(Bitmap bmp, bool isEncoded, out Palette pal, out Tilemap map, byte paletteMap = 0)
         {
             if (bmp.Width % 8 == 0 && bmp.Height % 8 == 0)
             {
@@ -94,7 +94,7 @@ namespace Single.Graphics
                 set.Tiles = firstlist;
                 for (ushort u = 0; u < mapdict.Keys.Count; ++u)
                 {
-                    map.Entries.Add(new TilemapEntry((ushort)(mapdict[u]), 0, false, false));
+                    map.Entries.Add(new TilemapEntry((ushort)(mapdict[u]), paletteMap, false, false));
                 }
                 return set;
             }
@@ -245,6 +245,10 @@ namespace Single.Graphics
         /// <returns>Bitmap, welches das Tileset repräsentiert</returns>
         public Bitmap ToBitmap(int imgwidth, Palette pal)
         {
+            if (is8bpp)
+            {
+                throw new NotImplementedException();
+            }
             Bitmap output;
             if (is8bpp)
             {
@@ -272,27 +276,38 @@ namespace Single.Graphics
 
             
             byte[] bytes = new byte[data.Height * data.Stride];
-            byte[] write = this.GetRawData();
+            byte[] write = this.GetTileData();
             Marshal.Copy(data.Scan0, bytes, 0, bytes.Length);
-            if (is8bpp)
+            
+            int w = output.Width / 2;
+            int h = output.Height;
+            int t = 0;
+            for (int y = 0; y < h; y += 8)
             {
-                for (int i = 0; i < write.Length; ++i)
+                for (int x = 0; x < w; x+= 4)
                 {
-                    bytes[i] = write[i];
+                    byte[] tdata = Tiles[t].GetRawData();
+                    for(int y1 = 0; y1 < 8; ++y1)
+                    {
+                        for(int x1 = 0; x1 < 4; ++x1)
+                        {
+                            byte b1 = (byte)(tdata[(y1 * 4) + x1] << 4);
+                            byte b2 = (byte)(tdata[(y1 * 4) + x1] >> 4);
+                            bytes[((y + y1) * w) + (x + x1)] = (byte)(b1 | b2);
+                        }
+                    }
+                    t++;
                 }
             }
-            else
-            {
-                for (int i = 0; i < write.Length; i++)
-                {
-                    byte b1 = (byte)(write[i] << 4);
-                    byte b2 = (byte)(write[i] >> 4);
-                    bytes[i] = (byte)(b1 | b2);
-                }
-            }
+
             Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
             output.UnlockBits(data);
             return output;
+        }
+
+        private int ceiling(decimal val)
+        {
+            return (int)Math.Ceiling((decimal)val);
         }
 
         /// <summary>
@@ -311,6 +326,20 @@ namespace Single.Graphics
                 return output.ToArray();
             }
             return RomDecode.lzCompressData(output.ToArray()).ToArray();
+        }
+
+        /// <summary>
+        /// Gibt ein unkomprimiertes Array der Tile Daten zurück.
+        /// </summary>
+        /// <returns>Byte Array</returns>
+        public byte[] GetTileData()
+        {
+            List<byte> output = new List<byte>();
+            foreach (Tile t in this.Tiles)
+            {
+                output.AddRange(t.GetRawData());
+            }
+            return output.ToArray();
         }
 
         /// <summary>
