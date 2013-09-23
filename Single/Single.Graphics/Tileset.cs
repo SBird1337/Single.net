@@ -245,10 +245,6 @@ namespace Single.Graphics
         /// <returns>Bitmap, welches das Tileset repräsentiert</returns>
         public Bitmap ToBitmap(int imgwidth, Palette pal)
         {
-            if (is8bpp)
-            {
-                throw new NotImplementedException();
-            }
             Bitmap output;
             if (is8bpp)
             {
@@ -278,25 +274,65 @@ namespace Single.Graphics
             byte[] bytes = new byte[data.Height * data.Stride];
             byte[] write = this.GetTileData();
             Marshal.Copy(data.Scan0, bytes, 0, bytes.Length);
-            
-            int w = output.Width / 2;
-            int h = output.Height;
-            int t = 0;
-            for (int y = 0; y < h; y += 8)
+            if (!is8bpp)
             {
-                for (int x = 0; x < w; x+= 4)
+                int w = output.Width / 2;
+                int h = output.Height;
+                int t = 0;
+                for (int y = 0; y < h; y += 8)
                 {
-                    byte[] tdata = Tiles[t].GetRawData();
-                    for(int y1 = 0; y1 < 8; ++y1)
+                    for (int x = 0; x < w; x += 4)
                     {
-                        for(int x1 = 0; x1 < 4; ++x1)
+                        byte[] tdata = new byte[] { 0 };
+                        if(t < this.Tiles.Count)
+                            tdata = Tiles[t].GetRawData();
+                        for (int y1 = 0; y1 < 8; ++y1)
                         {
-                            byte b1 = (byte)(tdata[(y1 * 4) + x1] << 4);
-                            byte b2 = (byte)(tdata[(y1 * 4) + x1] >> 4);
-                            bytes[((y + y1) * w) + (x + x1)] = (byte)(b1 | b2);
+                            for (int x1 = 0; x1 < 4; ++x1)
+                            {
+                                if (t < this.Tiles.Count)
+                                {
+                                    byte b1 = (byte)(tdata[(y1 * 4) + x1] << 4);
+                                    byte b2 = (byte)(tdata[(y1 * 4) + x1] >> 4);
+                                    bytes[((y + y1) * w) + (x + x1)] = (byte)(b1 | b2);
+                                }
+                                else
+                                {
+                                    bytes[((y + y1) * w) + (x + x1)] = 0x0;
+                                }
+                            }
                         }
+                        t++;
                     }
-                    t++;
+                }
+            }
+            else
+            {
+                int t = 0;
+                for (int y = 0; y < output.Height; y += 8)
+                {
+                    for (int x = 0; x < output.Width; x += 8)
+                    {
+                        byte[] tdata = new byte[] {0};
+                        if (t < Tiles.Count)
+                            tdata = Tiles[t].GetRawData();
+
+                        for (int y1 = 0; y1 < 8; ++y1)
+                        {
+                            for (int x1 = 0; x1 < 8; ++x1)
+                            {
+                                if (t < this.Tiles.Count)
+                                {
+                                    bytes[((y + y1) * output.Width) + (x + x1)] = tdata[(y1 * 8) + x1];
+                                }
+                                else
+                                {
+                                    bytes[((y + y1) * output.Width) + (x + x1)] = 0xFF;
+                                }
+                            }
+                        }
+                        t++;
+                    }
                 }
             }
 
