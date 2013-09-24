@@ -17,6 +17,7 @@ namespace Single.Compression
         private const int ReadAheadBufferSize = 18;
         private const int BlockSize = 8;
 
+        private const int ScanDeepness = 4;
         #endregion
 
         #region Functions
@@ -33,57 +34,21 @@ namespace Single.Compression
             return Compress(br, 0, input.Length);
         }
 
-
-        private static List<Byte> unlz(Stream input, out int compressedLenght)
+        /// <summary>
+        /// Scant das angegebene Rom auf LZ77 komprimierte Daten
+        /// </summary>
+        /// <param name="input">Zu verwendendes Rom</param>
+        /// <returns></returns>
+        public static List<UInt32> Scan(Rom input)
         {
-            List<Byte> output = new List<Byte>();
-            long position = input.Position;
+            MemoryStream ms = new MemoryStream(input.RawData);
+            List<UInt32> output = new List<UInt32>();
+            while (ms.Position < ms.Length - 4)
             {
-                BinaryReader bw = new BinaryReader(input);
-                UInt32 lzhead = bw.ReadUInt32();
-                Byte colorCount = Convert.ToByte((lzhead << 24) >> 24);
-                UInt32 lenght = lzhead >> 8;
-
-                do
-                {
-                    byte decoder = bw.ReadByte();
-                    for (int i = 0; i < 8; i++)
-                    {
-                        bool usingbit = (decoder & (1 << 7 - i)) != 0;
-                        if (usingbit == false)
-                        {
-                            output.Add(bw.ReadByte());
-                        }
-                        else
-                        {
-                            UInt16 b1 = Convert.ToUInt16(input.ReadByte() << 8);
-                            UInt16 b2 = bw.ReadByte();
-                            UInt16 codec = Convert.ToUInt16(b1 | b2);
-
-                            UInt16 backsize = Convert.ToUInt16((codec & 4095) + 1);
-                            UInt16 backlenght = Convert.ToUInt16((codec >> 12) + 3);
-                            List<Byte> backbuffer = new List<Byte>();
-
-                            int index = output.Count - backsize;
-                            while (backbuffer.Count < backlenght)
-                            {
-
-                                backbuffer.Add(output[index]);
-                                index++;
-                                if (index >= output.Count)
-                                {
-                                    index = output.Count - backsize;
-                                }
-                            }
-                            output.AddRange(backbuffer);
-
-                        }
-                    }
-                }
-                while (output.Count < lenght);
-                int removing = output.Count - (int)lenght;
-                output.RemoveRange((int)lenght, removing);
-                compressedLenght = (int)(input.Position - position - removing);
+                UInt32 position = (UInt32)ms.Position;
+                if (CanBeUnCompressed(ms, (int)ms.Position))
+                    output.Add(position);
+                ms.Position = position + ScanDeepness;
             }
             return output;
         }
@@ -158,7 +123,6 @@ namespace Single.Compression
                 }
             }
         }
-
         private static unsafe byte[] Compress(byte* source, int lenght)
         {
             int position = 0;
@@ -247,6 +211,110 @@ namespace Single.Compression
                     break;
             }
             return new int[2] { amountOfBytes, results[0] }; //lenght of data is first, then position
+        }
+        private static bool CanBeUnCompressed(Stream input, int offset)
+        {
+            BinaryReader br = new BinaryReader(input);
+            br.BaseStream.Position = offset;
+            uint size = br.ReadUInt32();
+            if (!((size & 0xFF) == 0x10))
+                return false;
+
+            size >>= 8;
+            int UncompressedDataSize = 0;
+
+            while (UncompressedDataSize < size)
+            {
+                if (br.BaseStream.Position + 1 > br.BaseStream.Length)
+                    return false;
+                byte isCompressed = br.ReadByte();
+
+                for (int i = 0; i < BlockSize; i++)
+                {
+                    if ((isCompressed & 0x80) != 0)
+                    {
+                        if (br.BaseStream.Position + 2 > br.BaseStream.Length)
+                            return false;
+
+                        byte first = br.ReadByte();
+                        byte second = br.ReadByte();
+                        int amountToCopy = 3 + ((first >> 4));
+                        int copyFrom = 1 + ((first & 0xF) << 8) + second;
+
+                        if (copyFrom > UncompressedDataSize)
+                            return false;
+
+                        UncompressedDataSize += amountToCopy;
+                    }
+                    else
+                    {
+                        if (br.BaseStream.Position + 1 > br.BaseStream.Length)
+                            return false;
+
+                        br.BaseStream.Position++;
+                        UncompressedDataSize++;
+                    }
+                    isCompressed <<= 1;
+                }
+            }
+            return true;
+        }
+        private static List<Byte> unlz(Stream input, out int compressedLenght)
+        {
+            long op = input.Position;
+            if (!CanBeUnCompressed(input, (int)input.Position))
+                throw new Exception("Der angegebene Byte-Stream kann nicht dekomprimiert werden");
+            List<Byte> output = new List<Byte>();
+            input.Position = op;
+            long position = input.Position;
+            {
+                BinaryReader bw = new BinaryReader(input);
+                UInt32 lzhead = bw.ReadUInt32();
+                Byte colorCount = Convert.ToByte((lzhead << 24) >> 24);
+                UInt32 lenght = lzhead >> 8;
+
+                do
+                {
+                    byte decoder = bw.ReadByte();
+                    for (int i = 0; i < 8; i++)
+                    {
+                        bool usingbit = (decoder & (1 << 7 - i)) != 0;
+                        if (usingbit == false)
+                        {
+                            output.Add(bw.ReadByte());
+                        }
+                        else
+                        {
+                            UInt16 b1 = Convert.ToUInt16(input.ReadByte() << 8);
+                            UInt16 b2 = bw.ReadByte();
+                            UInt16 codec = Convert.ToUInt16(b1 | b2);
+
+                            UInt16 backsize = Convert.ToUInt16((codec & 4095) + 1);
+                            UInt16 backlenght = Convert.ToUInt16((codec >> 12) + 3);
+                            List<Byte> backbuffer = new List<Byte>();
+
+                            int index = output.Count - backsize;
+                            while (backbuffer.Count < backlenght)
+                            {
+
+                                backbuffer.Add(output[index]);
+                                index++;
+                                if (index >= output.Count)
+                                {
+                                    index = output.Count - backsize;
+                                }
+                            }
+                            output.AddRange(backbuffer);
+
+                        }
+                    }
+                }
+                while (output.Count < lenght);
+                int removing = output.Count - (int)lenght;
+                output.RemoveRange((int)lenght, removing);
+                compressedLenght = (int)(input.Position - position - removing);
+            }
+            return output;
         }
 
         //[Obsolete("Benutzen sie lzCompressData")]

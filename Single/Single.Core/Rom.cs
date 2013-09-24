@@ -156,12 +156,12 @@ namespace Single.Core
                 ms.Close();
                 fs.Close();
             }
-            catch (Exception ex)
+            catch
             {
                 ms.Close();
                 bs.Close();
                 fs.Close();
-                throw ex;
+                throw;
             }
             return true;
         }

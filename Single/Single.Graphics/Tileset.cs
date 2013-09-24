@@ -100,7 +100,7 @@ namespace Single.Graphics
             }
             else
             {
-                throw new Exception("Das angegebene Bitmap hat nicht das Format eines Tilesets. (W=a*8; H=a*8)");
+                throw new Exception("Das angegebene Bitmap hat nicht das Format eines Tilesets. (W=a*8; H=b*8)");
             }
         }
 
