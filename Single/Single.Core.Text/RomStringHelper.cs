@@ -1,8 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
-using Single.Core;
+﻿using System.Collections.Generic;
 
 namespace Single.Core.Text
 {
@@ -18,7 +14,7 @@ namespace Single.Core.Text
         #region Functions
 
         /// <summary>
-        /// Ließt ein Array aus Bytes bis das endByte(falls gesetzt, ansonsten 0xFF) erreicht ist am angegebenen Offset
+        ///     Ließt ein Array aus Bytes bis das endByte(falls gesetzt, ansonsten 0xFF) erreicht ist am angegebenen Offset
         /// </summary>
         /// <param name="input">Zu verwendendes Rom Objekt</param>
         /// <param name="offset">Startoffset</param>
@@ -27,7 +23,7 @@ namespace Single.Core.Text
         public static byte[] ReadRomString(Rom input, long offset, byte endByte = 0xFF)
         {
             input.SetStreamOffset(offset);
-            List<byte> output = new List<byte>();
+            var output = new List<byte>();
             byte current = input.ReadByte();
             while (current != endByte)
             {
@@ -39,7 +35,7 @@ namespace Single.Core.Text
 
         public static byte[] ReadRomString(Rom input, byte endByte = 0xFF)
         {
-            List<byte> output = new List<byte>();
+            var output = new List<byte>();
             byte current = input.ReadByte();
             while (current != endByte)
             {

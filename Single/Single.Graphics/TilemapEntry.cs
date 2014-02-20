@@ -1,9 +1,6 @@
-﻿using Single.Core;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Drawing;
-using System.Linq;
-using System.Text;
+using Single.Core;
 
 namespace Single.Graphics
 {
@@ -11,8 +8,8 @@ namespace Single.Graphics
     {
         #region Fields
 
-        private UInt16 _tileNumber;
         private byte _paletteIndex;
+        private UInt16 _tileNumber;
 
         #endregion
 
@@ -20,33 +17,24 @@ namespace Single.Graphics
 
         public UInt16 TileNumber
         {
-            get
-            {
-                return _tileNumber;
-            }
+            get { return _tileNumber; }
             set
             {
                 if (value > 1023)
                 {
                     throw new ArgumentException("Die Tile Nummer überschreitet die Maximalgröße von 9 Bit");
-                    
                 }
                 _tileNumber = value;
             }
         }
 
-        public bool VerticalMirror
-        { get; set; }
+        public bool VerticalMirror { get; set; }
 
-        public bool HorizontalMirror
-        { get; set; }
+        public bool HorizontalMirror { get; set; }
 
         public byte PaletteIndex
         {
-            get
-            {
-                return _paletteIndex;
-            }
+            get { return _paletteIndex; }
             set
             {
                 if (value > 15)
@@ -60,31 +48,33 @@ namespace Single.Graphics
         #endregion
 
         #region Constructors
+
         /// <summary>
-        /// Erstellt einen einzelnen Tilemap Eintrag aus dem angegebenen unsignierten Half-Word
+        ///     Erstellt einen einzelnen Tilemap Eintrag aus dem angegebenen unsignierten Half-Word
         /// </summary>
         /// <param name="input">Unsigniertes Half-Word mit Tilemap Daten</param>
         public TilemapEntry(UInt16 input)
         {
-            this.TileNumber = Convert.ToUInt16(input & 1023);
-            this.HorizontalMirror = Convert.ToBoolean(input & 1024);
-            this.VerticalMirror = Convert.ToBoolean(input & 2048);
-            this.PaletteIndex = Convert.ToByte((input & 61440) >> 12);
+            TileNumber = Convert.ToUInt16(input & 1023);
+            HorizontalMirror = Convert.ToBoolean(input & 1024);
+            VerticalMirror = Convert.ToBoolean(input & 2048);
+            PaletteIndex = Convert.ToByte((input & 61440) >> 12);
         }
 
         /// <summary>
-        /// Erstellt einen einzelnen Tilemap Eintrag mit den angegebenen Daten
+        ///     Erstellt einen einzelnen Tilemap Eintrag mit den angegebenen Daten
         /// </summary>
         /// <param name="tileNumber">Die Nummer des Tiles im Tileset</param>
         /// <param name="paletteNumber">Die zu verwendende Palette(0-16)</param>
         /// <param name="horizontalFlip">Wenn True: Horizontale Spiegelung</param>
         /// <param name="verticalFlip">Wenn True: Vertikale Spiegelung</param>
-        public TilemapEntry(UInt16 tileNumber, byte paletteNumber, bool horizontalFlip = false, bool verticalFlip = false)
+        public TilemapEntry(UInt16 tileNumber, byte paletteNumber, bool horizontalFlip = false,
+            bool verticalFlip = false)
         {
-            this.TileNumber = tileNumber;
-            this.VerticalMirror = verticalFlip;
-            this.HorizontalMirror = verticalFlip;
-            this.PaletteIndex = paletteNumber;
+            TileNumber = tileNumber;
+            VerticalMirror = verticalFlip;
+            HorizontalMirror = verticalFlip;
+            PaletteIndex = paletteNumber;
         }
 
         #endregion
@@ -92,39 +82,42 @@ namespace Single.Graphics
         #region Functions
 
         /// <summary>
-        /// Erstellt ein Bitmap aus dem einzelnen Tilemap Eintrag
+        ///     Implementation des IRomWritable Interfaces, gibt den Eintrag zurück wie er als Byte Array im Rom stehen würde
+        /// </summary>
+        /// <returns>Byte Array mit dem Inhalt des Tilemap Eintrags</returns>
+        public byte[] GetRawData()
+        {
+            var parse =
+                (byte)
+                    (((byte) (PaletteIndex << 4)) | (byte) ((Convert.ToByte(VerticalMirror) << 3)) |
+                     (byte) ((Convert.ToByte(HorizontalMirror) << 2)));
+            return new[]
+            {
+                (byte) (TileNumber & 0xFF),
+                (byte) ((byte) ((TileNumber >> 8) & 1) | parse)
+            };
+        }
+
+        /// <summary>
+        ///     Erstellt ein Bitmap aus dem einzelnen Tilemap Eintrag
         /// </summary>
         /// <param name="drawingSet">Das zu verwendende Tileset</param>
         /// <param name="drawingPalette">Die zur Darstellung verwendete Palette</param>
         /// <returns>Bitmap, welches den Eintrag darstellt</returns>
         public Bitmap ToBitmap(Tileset drawingSet, Palette drawingPalette)
         {
-            if (drawingSet.GetTileCount() < this.TileNumber)
-                throw new Exception(String.Format("Das angegebene Tileset enthält Tile {0} nicht", this.TileNumber));
-            Bitmap output = drawingSet.GetTileFromIndex(this.TileNumber).ToBitmap(drawingPalette);
-            if (this.HorizontalMirror)
+            if (drawingSet.GetTileCount() < TileNumber)
+                throw new Exception(String.Format("Das angegebene Tileset enthält Tile {0} nicht", TileNumber));
+            Bitmap output = drawingSet.GetTileFromIndex(TileNumber).ToBitmap(drawingPalette);
+            if (HorizontalMirror)
             {
                 output.RotateFlip(RotateFlipType.RotateNoneFlipX);
             }
-            if (this.VerticalMirror)
+            if (VerticalMirror)
             {
                 output.RotateFlip(RotateFlipType.RotateNoneFlipY);
             }
             return output;
-        }
-
-        /// <summary>
-        /// Implementation des IRomWritable Interfaces, gibt den Eintrag zurück wie er als Byte Array im Rom stehen würde
-        /// </summary>
-        /// <returns>Byte Array mit dem Inhalt des Tilemap Eintrags</returns>
-        public byte[] GetRawData()
-        {
-            byte parse = (byte)(((byte)(this.PaletteIndex << 4)) | (byte)((Convert.ToByte(this.VerticalMirror) << 3)) | (byte)((Convert.ToByte(this.HorizontalMirror) << 2)));
-            return new byte[] 
-            {
-                (byte)(this.TileNumber & 0xFF), 
-                (byte)((byte)((this.TileNumber >> 8) & 1) | parse)
-            };
         }
 
         #endregion

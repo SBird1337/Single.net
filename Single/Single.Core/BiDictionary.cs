@@ -1,15 +1,19 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Single.Core
 {
     public class BiDictionary<TKey1, TKey2> : IEnumerable<Tuple<TKey1, TKey2>>
     {
-        Dictionary<TKey1, TKey2> _forwards;
-        Dictionary<TKey2, TKey1> _reverses;
+        private readonly Dictionary<TKey1, TKey2> _forwards;
+        private readonly Dictionary<TKey2, TKey1> _reverses;
+
+        public BiDictionary(IEqualityComparer<TKey1> comparer1 = null, IEqualityComparer<TKey2> comparer2 = null)
+        {
+            _forwards = new Dictionary<TKey1, TKey2>(comparer1);
+            _reverses = new Dictionary<TKey2, TKey1>(comparer2);
+        }
 
         public int Count
         {
@@ -32,12 +36,19 @@ namespace Single.Core
             get { return _reverses.Keys; }
         }
 
-        public BiDictionary(IEqualityComparer<TKey1> comparer1 = null, IEqualityComparer<TKey2> comparer2 = null)
+        public IEnumerator<Tuple<TKey1, TKey2>> GetEnumerator()
         {
-            _forwards = new Dictionary<TKey1, TKey2>(comparer1);
-            _reverses = new Dictionary<TKey2, TKey1>(comparer2);
+            if (_forwards.Count != _reverses.Count)
+                throw new Exception("Allgemeiner Fehler im BiDictionary");
+
+            foreach (var item in _forwards)
+                yield return Tuple.Create(item.Key, item.Value);
         }
 
+        IEnumerator IEnumerable.GetEnumerator()
+        {
+            return GetEnumerator();
+        }
 
 
         public bool ContainsKey1(TKey1 key)
@@ -139,7 +150,7 @@ namespace Single.Core
         }
 
         private static bool UpdateByKey<S, T>(S key1, Dictionary<S, T> forwards, Dictionary<T, S> reverses, T key2,
-                                              Action<S, T> updater)
+            Action<S, T> updater)
         {
             T otherKey;
             if (!TryGetValue(key1, forwards, out otherKey) || ContainsKey(key2, reverses))
@@ -188,20 +199,6 @@ namespace Single.Core
         {
             _forwards.Clear();
             _reverses.Clear();
-        }
-
-        public IEnumerator<Tuple<TKey1, TKey2>> GetEnumerator()
-        {
-            if (_forwards.Count != _reverses.Count)
-                throw new Exception("Allgemeiner Fehler im BiDictionary");
-
-            foreach (var item in _forwards)
-                yield return Tuple.Create(item.Key, item.Value);
-        }
-
-        IEnumerator IEnumerable.GetEnumerator()
-        {
-            return GetEnumerator();
         }
     }
 }

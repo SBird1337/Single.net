@@ -1,7 +1,4 @@
-﻿using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -10,8 +7,9 @@ namespace Single.Core
     public static class ArrayHelper
     {
         #region Functions
+
         /// <summary>
-        /// Gibt alle Vorkommen von Sequence in SearchArray zurück
+        ///     Gibt alle Vorkommen von Sequence in SearchArray zurück
         /// </summary>
         /// <param name="SearchArray">Das zu durchsuchende Array</param>
         /// <param name="Sequence">Die zu suchende Byte Sequenz</param>
@@ -26,6 +24,7 @@ namespace Single.Core
                 yield return m.Index;
             }
         }
+
         #endregion
     }
 }

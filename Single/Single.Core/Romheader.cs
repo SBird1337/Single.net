@@ -1,8 +1,7 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 using System.IO;
+using System.Text;
+
 namespace Single.Core
 {
     public class Romheader : IRomWritable
@@ -15,33 +14,23 @@ namespace Single.Core
 
         #region Fields
 
-        private byte[] bootlogo;
+        private readonly byte[] bootlogo;
 
         #endregion
 
         #region Properties
 
-        public UInt32 EntryOPCode
-        { get; set; }
-        public string Title
-        { get; set; }
-        public string GameCode
-        { get; set; }
-        public string MakerCode
-        { get; set; }
-        public byte DeviceType
-        { get; set; }
-        public byte SoftwareVersion
-        { get; set; }
-        public byte MainUnit
-        { get; set; }
+        public UInt32 EntryOPCode { get; set; }
+        public string Title { get; set; }
+        public string GameCode { get; set; }
+        public string MakerCode { get; set; }
+        public byte DeviceType { get; set; }
+        public byte SoftwareVersion { get; set; }
+        public byte MainUnit { get; set; }
 
         public byte[] BootLogo
         {
-            get
-            {
-                return bootlogo;
-            }
+            get { return bootlogo; }
         }
 
         #endregion
@@ -49,25 +38,25 @@ namespace Single.Core
         #region Constructors
 
         /// <summary>
-        /// Erstellt einen Header aus dem angegebenen Byte Array, welches die Daten dazu enthält
+        ///     Erstellt einen Header aus dem angegebenen Byte Array, welches die Daten dazu enthält
         /// </summary>
         /// <param name="input">Rohdaten des Romheaders, muss 192 Bytes lang sein</param>
         public Romheader(byte[] input)
         {
             if (!(input.Length == 192))
                 throw new ArgumentException("Die zur verfügung gestellten Daten sind fehlerhaft");
-            MemoryStream ms = new MemoryStream(input);
-            BinaryReader br = new BinaryReader(ms);
-            this.EntryOPCode = br.ReadUInt32();
-            this.bootlogo = br.ReadBytes(BOOT_LOGO_SIZE);
-            this.Title = ASCIIEncoding.Default.GetString(br.ReadBytes(12));
-            this.GameCode = ASCIIEncoding.Default.GetString(br.ReadBytes(4));
-            this.MakerCode = ASCIIEncoding.Default.GetString(br.ReadBytes(2));
+            var ms = new MemoryStream(input);
+            var br = new BinaryReader(ms);
+            EntryOPCode = br.ReadUInt32();
+            bootlogo = br.ReadBytes(BOOT_LOGO_SIZE);
+            Title = Encoding.Default.GetString(br.ReadBytes(12));
+            GameCode = Encoding.Default.GetString(br.ReadBytes(4));
+            MakerCode = Encoding.Default.GetString(br.ReadBytes(2));
             br.ReadByte();
-            this.MainUnit = br.ReadByte();
-            this.DeviceType = br.ReadByte();
+            MainUnit = br.ReadByte();
+            DeviceType = br.ReadByte();
             br.ReadBytes(7);
-            this.SoftwareVersion = br.ReadByte();
+            SoftwareVersion = br.ReadByte();
             br.ReadBytes(3);
         }
 
@@ -76,35 +65,35 @@ namespace Single.Core
         #region Functions
 
         /// <summary>
-        /// Gibt die Daten es Headers zurück wie sie im Rom stehen
+        ///     Gibt die Daten es Headers zurück wie sie im Rom stehen
         /// </summary>
         /// <returns>Byte Array mit den Headerdaten</returns>
         public byte[] GetRawData()
         {
-            MemoryStream ms = new MemoryStream();
-            BinaryWriter bw = new BinaryWriter(ms);
+            var ms = new MemoryStream();
+            var bw = new BinaryWriter(ms);
 
-            bw.Write(this.EntryOPCode);
-            bw.Write(this.bootlogo);
-            bw.Write(ASCIIEncoding.Default.GetBytes(this.Title));
-            bw.Write(ASCIIEncoding.Default.GetBytes(this.GameCode));
-            bw.Write(ASCIIEncoding.Default.GetBytes(this.MakerCode));
+            bw.Write(EntryOPCode);
+            bw.Write(bootlogo);
+            bw.Write(Encoding.Default.GetBytes(Title));
+            bw.Write(Encoding.Default.GetBytes(GameCode));
+            bw.Write(Encoding.Default.GetBytes(MakerCode));
             bw.Write(0x96);
-            bw.Write(this.MainUnit);
-            bw.Write(this.DeviceType);
-            bw.Write(new Byte[] { 0, 0, 0, 0, 0, 0, 0 });
-            bw.Write(this.SoftwareVersion);
+            bw.Write(MainUnit);
+            bw.Write(DeviceType);
+            bw.Write(new Byte[] {0, 0, 0, 0, 0, 0, 0});
+            bw.Write(SoftwareVersion);
 
             UInt32 ComplementCheck = 0;
-            BinaryReader br = new BinaryReader(ms);
+            var br = new BinaryReader(ms);
             ms.Position = 0xA0;
             for (int i = 0xA0; i < 0xBC; ++i)
             {
-                ComplementCheck = (UInt32)(ComplementCheck - br.ReadByte());
+                ComplementCheck = ComplementCheck - br.ReadByte();
             }
             ms.Position++;
-            bw.Write((byte)((ComplementCheck - 0x19) & 0xFF));
-            bw.Write(new byte[] { 0, 0 });
+            bw.Write((byte) ((ComplementCheck - 0x19) & 0xFF));
+            bw.Write(new byte[] {0, 0});
 
             return ms.ToArray();
         }

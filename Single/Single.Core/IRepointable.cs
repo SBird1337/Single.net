@@ -1,7 +1,4 @@
 ﻿using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Text;
 
 namespace Single.Core
 {
@@ -9,6 +6,7 @@ namespace Single.Core
     {
         int GetSize();
         UInt32 GetCurrentOffset();
-        void SetCurrentOffset(UInt32 Offset);
+        void SetCurrentOffset(UInt32 offset);
+        int GetOriginalSize();
     }
 }
