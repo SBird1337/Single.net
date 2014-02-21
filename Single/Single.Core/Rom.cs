@@ -158,7 +158,6 @@ namespace Single.Core
             catch
             {
                 ms.Close();
-                bs.Close();
                 fs.Close();
                 throw;
             }

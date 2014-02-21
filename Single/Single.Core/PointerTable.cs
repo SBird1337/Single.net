@@ -76,7 +76,6 @@ namespace Single.Core
             }
             byte[] output = ms.ToArray();
             ms.Close();
-            ms.Dispose();
             bw.Dispose();
             return output;
         }

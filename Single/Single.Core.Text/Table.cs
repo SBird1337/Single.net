@@ -25,7 +25,6 @@ namespace Single.Core.Text
             var sr = new StreamReader(fs, Encoding.UTF8);
             string table = sr.ReadToEnd();
             fs.Close();
-            fs.Dispose();
             sr.Dispose();
             foreach (string line in table.Split(new[] {"\r\n", "\n"}, StringSplitOptions.None))
             {
@@ -90,7 +89,6 @@ namespace Single.Core.Text
             }
             byte[] output = ms.ToArray();
             ms.Close();
-            ms.Dispose();
             return output;
         }
 
