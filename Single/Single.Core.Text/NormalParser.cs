@@ -15,7 +15,8 @@
                     .Replace("<oe>", "ö")
                     .Replace("<ue>", "ü")
                     .Replace("_", " ")
-                    .Replace("<e>", "é");
+                    .Replace("<e>", "é")
+                    .Replace("<S>", "ß");
             return input;
         }
 
@@ -30,7 +31,8 @@
                     .Replace("ö", "<oe>")
                     .Replace("ü", "<ue>")
                     .Replace(" ", "_")
-                    .Replace("é", "<e>");
+                    .Replace("é", "<e>")
+                    .Replace("ß", "<S>");
             return input;
         }
 
