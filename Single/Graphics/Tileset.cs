@@ -219,6 +219,7 @@ namespace Single.Graphics
         ///     Erstellt ein Tileset aus dem angegebenen Byte Array
         /// </summary>
         /// <param name="input">Rohdaten des Tilesets</param>
+        /// <param name="isEncoded">Gibt an ob das Byte Array komprimierte Daten enthält</param>
         /// <param name="is8Bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
         /// <returns>Tileset Objekt</returns>
         public static Tileset FromByteArray(byte[] input, bool isEncoded, bool is8Bpp = false)

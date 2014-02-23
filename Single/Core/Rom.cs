@@ -132,16 +132,16 @@ namespace Single.Core
         public Boolean Patch(string path)
         {
             var fs = new FileStream(path, FileMode.Open);
-            var br = new BinaryReader(fs);
-            byte[] copyData = br.ReadBytes((int) fs.Length);
-            if (copyData.Length != _rawdata.Length)
+            //var br = new BinaryReader(fs);
+            //byte[] copyData = br.ReadBytes((int) fs.Length);
+            if (fs.Length != _rawdata.Length)
             {
                 fs.Close();
                 throw new ArgumentException();
             }
-            var ms = new MemoryStream(copyData);
-            var bs = new BufferedStream(ms);
-            var bw = new BinaryWriter(bs);
+            //var ms = new MemoryStream(copyData);
+            //var bs = new BufferedStream(ms);
+            var bw = new BinaryWriter(fs);
             try
             {
                 foreach (PatchEntry entry in _patchentries)
@@ -149,18 +149,14 @@ namespace Single.Core
                     bw.BaseStream.Position = entry.Offset;
                     bw.Write(entry.Data);
                 }
-                fs.Position = 0;
-                bw = new BinaryWriter(fs);
-                bw.Write(copyData);
-                ms.Close();
                 fs.Close();
             }
             catch
             {
-                ms.Close();
                 fs.Close();
                 throw;
             }
+            _patchentries.Clear();
             return true;
         }
 

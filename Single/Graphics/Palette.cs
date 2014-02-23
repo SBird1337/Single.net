@@ -120,9 +120,9 @@ namespace Single.Graphics
             var output = new List<byte>();
             foreach (Color c in _entries)
             {
-                var r = (byte) (Math.Round((double) (c.R/8)));
-                var g = (byte) (Math.Round((double) (c.G/8)));
-                var b = (byte) (Math.Round((double) (c.B/8)));
+                var r = (byte) (Math.Round((c.R/8.0)));
+                var g = (byte) (Math.Round((c.G/8.0)));
+                var b = (byte) (Math.Round((c.B/8.0)));
                 var colorEntry = (UInt16) (r | (g << 5) | (b << 10));
                 output.Add((byte) (colorEntry & 0xFF));
                 output.Add((byte) ((colorEntry & 0xFF00) >> 8));
