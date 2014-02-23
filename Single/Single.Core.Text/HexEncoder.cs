@@ -15,7 +15,7 @@
         public HexEncoder(Table tbl, IParseInformationProvider parser)
         {
             EncodingTable = tbl;
-            this._parser = parser;
+            _parser = parser;
         }
 
         #endregion
@@ -29,7 +29,7 @@
         /// <returns>Lesbare Zeichenkette</returns>
         public string GetParsedString(byte[] stringData)
         {
-            return _parser.getReadableFormat(EncodingTable.Decode(stringData));
+            return _parser.GetReadableFormat(EncodingTable.Decode(stringData));
         }
 
         /// <summary>
@@ -39,7 +39,7 @@
         /// <returns>Kodierte Hex-Daten des Strings wie er im Rom stehen würde</returns>
         public byte[] GetParsedBytes(string input)
         {
-            return EncodingTable.Encode(_parser.getTableFormat(input));
+            return EncodingTable.Encode(_parser.GetTableFormat(input));
         }
 
         #endregion

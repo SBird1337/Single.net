@@ -14,13 +14,13 @@ namespace Single.Core
 
         #region Fields
 
-        private readonly byte[] bootlogo;
+        private readonly byte[] _bootlogo;
 
         #endregion
 
         #region Properties
 
-        public UInt32 EntryOPCode { get; set; }
+        public UInt32 EntryOpCode { get; set; }
         public string Title { get; set; }
         public string GameCode { get; set; }
         public string MakerCode { get; set; }
@@ -30,7 +30,7 @@ namespace Single.Core
 
         public byte[] BootLogo
         {
-            get { return bootlogo; }
+            get { return _bootlogo; }
         }
 
         #endregion
@@ -43,12 +43,12 @@ namespace Single.Core
         /// <param name="input">Rohdaten des Romheaders, muss 192 Bytes lang sein</param>
         public Romheader(byte[] input)
         {
-            if (!(input.Length == 192))
+            if (input.Length != 192)
                 throw new ArgumentException("Die zur verfügung gestellten Daten sind fehlerhaft");
             var ms = new MemoryStream(input);
             var br = new BinaryReader(ms);
-            EntryOPCode = br.ReadUInt32();
-            bootlogo = br.ReadBytes(BOOT_LOGO_SIZE);
+            EntryOpCode = br.ReadUInt32();
+            _bootlogo = br.ReadBytes(BOOT_LOGO_SIZE);
             Title = Encoding.Default.GetString(br.ReadBytes(12));
             GameCode = Encoding.Default.GetString(br.ReadBytes(4));
             MakerCode = Encoding.Default.GetString(br.ReadBytes(2));
@@ -73,8 +73,8 @@ namespace Single.Core
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
 
-            bw.Write(EntryOPCode);
-            bw.Write(bootlogo);
+            bw.Write(EntryOpCode);
+            bw.Write(_bootlogo);
             bw.Write(Encoding.Default.GetBytes(Title));
             bw.Write(Encoding.Default.GetBytes(GameCode));
             bw.Write(Encoding.Default.GetBytes(MakerCode));
@@ -84,15 +84,15 @@ namespace Single.Core
             bw.Write(new Byte[] {0, 0, 0, 0, 0, 0, 0});
             bw.Write(SoftwareVersion);
 
-            UInt32 ComplementCheck = 0;
+            UInt32 complementCheck = 0;
             var br = new BinaryReader(ms);
             ms.Position = 0xA0;
             for (int i = 0xA0; i < 0xBC; ++i)
             {
-                ComplementCheck = ComplementCheck - br.ReadByte();
+                complementCheck = complementCheck - br.ReadByte();
             }
             ms.Position++;
-            bw.Write((byte) ((ComplementCheck - 0x19) & 0xFF));
+            bw.Write((byte) ((complementCheck - 0x19) & 0xFF));
             bw.Write(new byte[] {0, 0});
 
             return ms.ToArray();

@@ -6,7 +6,7 @@ namespace Single.Core
     {
         int GetSize();
         UInt32 GetCurrentOffset();
-        void SetCurrentOffset(UInt32 offset);
+        void SetCurrentOffset(UInt32 newOffset);
         int GetOriginalSize();
     }
 }

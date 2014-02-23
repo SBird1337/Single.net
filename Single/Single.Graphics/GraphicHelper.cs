@@ -17,10 +17,12 @@ namespace Single.Graphics
         /// <param name="img">Eingabebitmap im PNG Format</param>
         /// <param name="pal">Ausgabe Palette</param>
         /// <param name="map">Ausgabe Tilemap</param>
-        /// <param name="is8bpp">Wenn true: Erstellt ein 8bpp Tileset / Palette</param>
+        /// <param name="paletteMap">Gibt den Palettenindex an, welcher bei der Tilemaperstellung verwendet wird</param>
+        /// <param name="is8Bpp">Wenn true: Erstellt ein 8bpp Tileset / Palette</param>
+        /// <param name="isEncoded">Gibt an ob die Grafik komprimiert werden soll</param>
         /// <returns>Fertiges Tileset Objekt</returns>
         public static Tileset CreateIndexedTilesetMap(Bitmap img, out Palette pal, out Tilemap map, byte paletteMap = 0,
-            bool is8bpp = false, bool isEncoded = false)
+            bool is8Bpp = false, bool isEncoded = false)
         {
             if (img.PixelFormat == PixelFormat.Format4bppIndexed || img.PixelFormat == PixelFormat.Format8bppIndexed)
             {
@@ -29,15 +31,7 @@ namespace Single.Graphics
             var colors = new List<Color>();
             var indexes = new List<byte>();
             var coordinates = new Dictionary<Point, byte>();
-            Bitmap indexedBitmap;
-            if (is8bpp)
-            {
-                indexedBitmap = new Bitmap(img.Width, img.Height, PixelFormat.Format8bppIndexed);
-            }
-            else
-            {
-                indexedBitmap = new Bitmap(img.Width, img.Height, PixelFormat.Format4bppIndexed);
-            }
+            Bitmap indexedBitmap = is8Bpp ? new Bitmap(img.Width, img.Height, PixelFormat.Format8bppIndexed) : new Bitmap(img.Width, img.Height, PixelFormat.Format4bppIndexed);
 
             for (int y = 0; y < img.Height; ++y)
             {
@@ -58,7 +52,7 @@ namespace Single.Graphics
                 }
             }
             int ccount = 16;
-            if (is8bpp)
+            if (is8Bpp)
             {
                 ccount = 256;
             }
@@ -79,7 +73,7 @@ namespace Single.Graphics
             }
             indexedBitmap.Palette = ipal;
 
-            if (!is8bpp)
+            if (!is8Bpp)
             {
                 BitmapData data = indexedBitmap.LockBits(
                     new Rectangle(new Point(0, 0), new Size(img.Width, img.Height)), ImageLockMode.ReadWrite,
@@ -122,7 +116,7 @@ namespace Single.Graphics
         /// <param name="y">>-Koordinate</param>
         /// <param name="paletteEntry">Index in der Palette</param>
         [Obsolete("Sehr langsame Methode, verwenden sie LockBits um alle ihre Pixel auf einmal zu setzen")]
-        public static void Set4bppPixel(Bitmap bmp, int x, int y, int paletteEntry)
+        public static void Set4BppPixel(Bitmap bmp, int x, int y, int paletteEntry)
         {
             BitmapData data = bmp.LockBits(new Rectangle(new Point(x, y), new Size(1, 1)), ImageLockMode.ReadWrite,
                 PixelFormat.Format4bppIndexed);
@@ -139,11 +133,11 @@ namespace Single.Graphics
         /// <param name="y">>-Koordinate</param>
         /// <param name="paletteEntry">Index in der Palette</param>
         [Obsolete("Sehr langsame Methode, verwenden sie LockBits um alle ihre Pixel auf einmal zu setzen")]
-        public static void Set8bppPixel(Bitmap bmp, int x, int y, int paletteEntry)
+        public static void Set8BppPixel(Bitmap bmp, int x, int y, int paletteEntry)
         {
             BitmapData data = bmp.LockBits(new Rectangle(new Point(x, y), new Size(1, 1)), ImageLockMode.ReadWrite,
                 PixelFormat.Format8bppIndexed);
-            byte b = Marshal.ReadByte(data.Scan0);
+            Marshal.ReadByte(data.Scan0);
             Marshal.WriteByte(data.Scan0, (byte) paletteEntry);
             bmp.UnlockBits(data);
         }

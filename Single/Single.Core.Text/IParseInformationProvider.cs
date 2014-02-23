@@ -2,7 +2,7 @@
 {
     public interface IParseInformationProvider
     {
-        string getReadableFormat(string input);
-        string getTableFormat(string input);
+        string GetReadableFormat(string input);
+        string GetTableFormat(string input);
     }
 }

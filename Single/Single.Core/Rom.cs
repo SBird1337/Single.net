@@ -18,8 +18,8 @@ namespace Single.Core
 
         private struct PatchEntry
         {
-            public byte[] data;
-            public UInt32 offset;
+            public byte[] Data;
+            public UInt32 Offset;
         }
 
         #endregion
@@ -29,11 +29,11 @@ namespace Single.Core
         /// <summary>
         ///     Erstellt ein Rom Objekt mit angegebener Länge aus dem angegebenen Stream
         /// </summary>
-        /// <param name="Input">Der Eingangsstream mit festgelegter Leseposition</param>
+        /// <param name="input">Der Eingangsstream mit festgelegter Leseposition</param>
         /// <param name="romlenght">Die Länge des Rom Objekts, als Hilfe dienen die statischen Konstanten in der Rom Klasse</param>
-        public Rom(Stream Input, UInt32 romlenght)
+        public Rom(Stream input, UInt32 romlenght)
         {
-            if (!Load(Input, romlenght))
+            if (!Load(input, romlenght))
                 throw new ArgumentException();
         }
 
@@ -64,12 +64,12 @@ namespace Single.Core
 
         #region Fields
 
-        private bool disposed;
-        private List<PatchEntry> patchentries = new List<PatchEntry>();
-        private byte[] rawdata;
-        private BinaryReader romReader;
-        private BinaryWriter romWriter;
-        private MemoryStream romstream;
+        private bool _disposed;
+        private List<PatchEntry> _patchentries = new List<PatchEntry>();
+        private byte[] _rawdata;
+        private BinaryReader _romReader;
+        private BinaryWriter _romWriter;
+        private MemoryStream _romstream;
 
         #endregion
 
@@ -79,12 +79,12 @@ namespace Single.Core
 
         public byte[] RawData
         {
-            get { return rawdata; }
+            get { return _rawdata; }
         }
 
         public long CurrentPosition
         {
-            get { return romstream.Position; }
+            get { return _romstream.Position; }
         }
 
         #endregion
@@ -96,11 +96,11 @@ namespace Single.Core
             if (instream != null && instream.Position + romlenght <= instream.Length)
             {
                 var br = new BinaryReader(instream);
-                rawdata = br.ReadBytes((int) romlenght);
+                _rawdata = br.ReadBytes((int) romlenght);
                 instream.Close();
-                romstream = new MemoryStream(rawdata);
-                romReader = new BinaryReader(romstream);
-                romWriter = new BinaryWriter(romstream);
+                _romstream = new MemoryStream(_rawdata);
+                _romReader = new BinaryReader(_romstream);
+                _romWriter = new BinaryWriter(_romstream);
                 SetStreamOffset(0);
                 Header = new Romheader(ReadByteArray(192).ToArray());
                 SetStreamOffset(0x0);
@@ -118,7 +118,7 @@ namespace Single.Core
         {
             var fs = new FileStream(path, FileMode.OpenOrCreate);
             var bw = new BinaryWriter(fs);
-            bw.Write(rawdata);
+            bw.Write(_rawdata);
             fs.Close();
             return true;
         }
@@ -134,7 +134,7 @@ namespace Single.Core
             var fs = new FileStream(path, FileMode.Open);
             var br = new BinaryReader(fs);
             byte[] copyData = br.ReadBytes((int) fs.Length);
-            if (copyData.Length != rawdata.Length)
+            if (copyData.Length != _rawdata.Length)
             {
                 fs.Close();
                 throw new ArgumentException();
@@ -144,10 +144,10 @@ namespace Single.Core
             var bw = new BinaryWriter(bs);
             try
             {
-                foreach (PatchEntry entry in patchentries)
+                foreach (PatchEntry entry in _patchentries)
                 {
-                    bw.BaseStream.Position = entry.offset;
-                    bw.Write(entry.data);
+                    bw.BaseStream.Position = entry.Offset;
+                    bw.Write(entry.Data);
                 }
                 fs.Position = 0;
                 bw = new BinaryWriter(fs);
@@ -167,14 +167,14 @@ namespace Single.Core
         /// <summary>
         ///     Ließt eine ASCII Zeichenkette von Lenght an der aktuellen Position und erhöht die Position um Length
         /// </summary>
-        /// <param name="Length">Länge der Zeichenkette</param>
+        /// <param name="length">Länge der Zeichenkette</param>
         /// <returns>ASCII Zeichenkette</returns>
-        public String ReadString(int Length)
+        public String ReadString(int length)
         {
             string output = "";
-            for (int i = 0; i < Length; i++)
+            for (int i = 0; i < length; i++)
             {
-                output += romReader.ReadChar();
+                output += _romReader.ReadChar();
             }
             return output;
         }
@@ -185,7 +185,7 @@ namespace Single.Core
         /// <returns>Eingelesenes Word</returns>
         public UInt32 ReadUInt32()
         {
-            return romReader.ReadUInt32();
+            return _romReader.ReadUInt32();
         }
 
         /// <summary>
@@ -194,7 +194,7 @@ namespace Single.Core
         /// <returns>Eingelesenes Half-Word</returns>
         public UInt16 ReadUInt16()
         {
-            return romReader.ReadUInt16();
+            return _romReader.ReadUInt16();
         }
 
         /// <summary>
@@ -203,18 +203,18 @@ namespace Single.Core
         /// <returns>Eingelesenes Byte</returns>
         public Byte ReadByte()
         {
-            return romReader.ReadByte();
+            return _romReader.ReadByte();
         }
 
         /// <summary>
         ///     Ließt ein Array aus Bytes mit Länge Count an der aktuellen Position und erhöht die Position um Count
         /// </summary>
-        /// <param name="Count">Anzahl der Bytes im Array</param>
+        /// <param name="count">Anzahl der Bytes im Array</param>
         /// <returns>Liste mit eingelesenen Werten</returns>
-        public List<Byte> ReadByteArray(int Count)
+        public List<Byte> ReadByteArray(int count)
         {
             var output = new List<Byte>();
-            output.AddRange(romReader.ReadBytes(Count));
+            output.AddRange(_romReader.ReadBytes(count));
             return output;
         }
 
@@ -222,14 +222,14 @@ namespace Single.Core
         ///     Ließt ein Array aus Half-Words ohne Vorzeichen mit Länge Count an der aktuellen Position und erhöht die Position um
         ///     Count.
         /// </summary>
-        /// <param name="Count">Anzahl der Half-Words</param>
+        /// <param name="count">Anzahl der Half-Words</param>
         /// <returns>Liste mit den eingelesenen UInt16 Werten</returns>
-        public List<UInt16> ReadUShortArray(int Count)
+        public List<UInt16> ReadUShortArray(int count)
         {
             var output = new List<UInt16>();
-            for (int i = 0; i < Count; i++)
+            for (int i = 0; i < count; i++)
             {
-                output.Add(romReader.ReadUInt16());
+                output.Add(_romReader.ReadUInt16());
             }
             return output;
         }
@@ -273,10 +273,10 @@ namespace Single.Core
         public bool WriteByteArray(byte[] bytes)
         {
             PatchEntry entry;
-            entry.offset = (UInt32) romstream.Position;
-            entry.data = bytes;
-            patchentries.Add(entry);
-            romWriter.Write(bytes);
+            entry.Offset = (UInt32) _romstream.Position;
+            entry.Data = bytes;
+            _patchentries.Add(entry);
+            _romWriter.Write(bytes);
             return true;
         }
 
@@ -284,7 +284,7 @@ namespace Single.Core
         ///     Schreibt das angegebene Half-Word Array an die aktuelle Position und erhöht die aktuelle Position um die Länge des
         ///     Arrays
         /// </summary>
-        /// <param name="bytes">Das zu schreibende Half-Word Array</param>
+        /// <param name="shorts">Das zu schreibende Half-Word Array</param>
         /// <returns>Erfolg des Vorgangs</returns>
         public bool WriteU16Array(UInt16[] shorts)
         {
@@ -301,43 +301,43 @@ namespace Single.Core
         /// <summary>
         ///     Sucht nach einem "freihen" Platz in der Rom, der durch d
         /// </summary>
-        /// <param name="Length"></param>
+        /// <param name="length"></param>
         /// <param name="freespace"></param>
         /// <param name="align"></param>
         /// <returns></returns>
-        public UInt32 GetFreeSpaceOffset(int Length, byte freespace, byte align)
+        public UInt32 GetFreeSpaceOffset(int length, byte freespace, byte align)
         {
             int counter = 0;
-            romstream.Position -= romstream.Position%align;
-            var Offset = (UInt32) romstream.Position;
-            while (counter < Length && romstream.Position < romstream.Length)
+            _romstream.Position -= _romstream.Position%align;
+            var offset = (UInt32) _romstream.Position;
+            while (counter < length && _romstream.Position < _romstream.Length)
             {
-                if (romReader.ReadByte() != freespace)
+                if (_romReader.ReadByte() != freespace)
                 {
                     counter = 0;
-                    Offset = (UInt32) ((romstream.Position - romstream.Position%align) + align);
+                    offset = (UInt32) ((_romstream.Position - _romstream.Position%align) + align);
                 }
                 else
                 {
                     counter++;
                 }
             }
-            if (counter != Length)
+            if (counter != length)
             {
                 throw new Exception(
                     "An der angegebenen Stelle wurde kein freihes Offset mit den angegebenen Kriterien gefunden!");
             }
-            return Offset;
+            return offset;
         }
 
         /// <summary>
         ///     Durchsucht das Rom Objekt nach der angegebenen Byte Sequenz und gibt ein IEnumerable mit allen Positionen zurück
         /// </summary>
-        /// <param name="Sequence">Die zu suchende Sequenz</param>
+        /// <param name="sequence">Die zu suchende Sequenz</param>
         /// <returns>Byte Array mit allen Positionen an denen Sequence vorkommt</returns>
-        public IEnumerable<int> FindByteSequence(byte[] Sequence)
+        public IEnumerable<int> FindByteSequence(byte[] sequence)
         {
-            return ArrayHelper.FindAll(rawdata, Sequence);
+            return ArrayHelper.FindAll(_rawdata, sequence);
         }
 
         #endregion
@@ -361,7 +361,7 @@ namespace Single.Core
 
         public void WriteToRom(IRepointable data)
         {
-            data.SetCurrentOffset((uint) romstream.Position);
+            data.SetCurrentOffset((uint) _romstream.Position);
             WriteByteArray(data.GetRawData());
         }
 
@@ -392,38 +392,38 @@ namespace Single.Core
 
         private void DisposeStream()
         {
-            romstream.Close();
-            romstream.Dispose();
+            _romstream.Close();
+            _romstream.Dispose();
         }
 
         /// <summary>
         ///     Setzt die aktuelle Position manuell auf Offset
         /// </summary>
-        /// <param name="Offset">Neue Carretposition, muss kleiner als die Länge des Roms sein</param>
-        public void SetStreamOffset(long Offset)
+        /// <param name="offset">Neue Carretposition, muss kleiner als die Länge des Roms sein</param>
+        public void SetStreamOffset(long offset)
         {
-            if (Offset > romstream.Length)
+            if (offset > _romstream.Length)
             {
-                throw new ArgumentOutOfRangeException("Offset",
+                throw new ArgumentOutOfRangeException("offset",
                     "Die angegebene Position befindet sich nicht im Bereich des ROMs");
             }
-            romstream.Position = Offset;
+            _romstream.Position = offset;
         }
 
 
         protected virtual void Dispose(bool disposing)
         {
-            if (!disposed)
+            if (!_disposed)
             {
                 if (disposing)
                 {
                     DisposeStream();
-                    romReader.Dispose();
-                    romWriter.Dispose();
+                    _romReader.Dispose();
+                    _romWriter.Dispose();
                 }
-                rawdata = null;
-                patchentries = null;
-                disposed = true;
+                _rawdata = null;
+                _patchentries = null;
+                _disposed = true;
             }
         }
 

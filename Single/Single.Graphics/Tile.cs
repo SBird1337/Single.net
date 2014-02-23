@@ -10,8 +10,8 @@ namespace Single.Graphics
     {
         #region Fields
 
-        private readonly byte[] data;
-        private readonly bool is8bpp;
+        private readonly byte[] _data;
+        private readonly bool _is8Bpp;
 
         #endregion
 
@@ -24,11 +24,11 @@ namespace Single.Graphics
         ///     Liste mit Tileset Einträgen, muss 32 Einträge lang sein wenn es sich um ein 4bpp Tile handelt,
         ///     ansonsten 64 Einträge
         /// </param>
-        /// <param name="is8bpp">Wenn true: Es wird versucht ein 8bpp Tile zu laden</param>
-        public Tile(List<Byte> datalist, bool is8bpp = false)
+        /// <param name="is8Bpp">Wenn true: Es wird versucht ein 8bpp Tile zu laden</param>
+        public Tile(List<Byte> datalist, bool is8Bpp = false)
         {
-            this.is8bpp = is8bpp;
-            if (!is8bpp)
+            _is8Bpp = is8Bpp;
+            if (!is8Bpp)
             {
                 if (datalist.Count != 32)
                 {
@@ -44,7 +44,7 @@ namespace Single.Graphics
                         "Die Liste der zur Verfügung gestellten Daten enthält mehr oder weniger als 64 Einträge und ist ungültig für ein 8bpp Tile.");
                 }
             }
-            data = datalist.ToArray();
+            _data = datalist.ToArray();
         }
 
         #endregion
@@ -57,24 +57,24 @@ namespace Single.Graphics
         /// <returns></returns>
         public byte[] GetRawData()
         {
-            return data;
+            return _data;
         }
 
         /// <summary>
         ///     Erstellt ein Tile mit Daten aus dem angegebenen Rom Objekt an der angegebenen Stelle
         /// </summary>
-        /// <param name="Rom">Rom Objekt, welches die Tile Daten enthält</param>
-        /// <param name="Offset">Position der Daten</param>
-        /// <param name="is8bpp">Wenn true: Es wird versucht ein 8bpp Tile zu laden</param>
+        /// <param name="rom">Rom Objekt, welches die Tile Daten enthält</param>
+        /// <param name="offset">Position der Daten</param>
+        /// <param name="is8Bpp">Wenn true: Es wird versucht ein 8bpp Tile zu laden</param>
         /// <returns></returns>
-        public static Tile FromRomOffset(Rom Rom, UInt32 Offset, bool is8bpp = false)
+        public static Tile FromRomOffset(Rom rom, UInt32 offset, bool is8Bpp = false)
         {
-            Rom.SetStreamOffset(Offset);
-            if (!is8bpp)
+            rom.SetStreamOffset(offset);
+            if (!is8Bpp)
             {
-                return new Tile(Rom.ReadByteArray(32));
+                return new Tile(rom.ReadByteArray(32));
             }
-            return new Tile(Rom.ReadByteArray(64), is8bpp);
+            return new Tile(rom.ReadByteArray(64), true);
         }
 
         /// <summary>
@@ -85,13 +85,13 @@ namespace Single.Graphics
         public Bitmap ToBitmap(Palette pal)
         {
             var colorentries = new List<Byte>(64);
-            if (is8bpp && (!pal.Is256Color()))
+            if (_is8Bpp && (!pal.Is256Color()))
             {
                 throw new Exception("Die angegebene Palette ist nicht im 8bpp Modus.");
             }
-            foreach (byte b in data)
+            foreach (byte b in _data)
             {
-                if (!is8bpp)
+                if (!_is8Bpp)
                 {
                     var first = (byte) (b & 15);
                     var second = (byte) (b >> 4);
@@ -118,14 +118,14 @@ namespace Single.Graphics
             if (obj.GetType() == typeof (Tile))
             {
                 var comp = (Tile) obj;
-                return data.SequenceEqual(comp.GetRawData());
+                return _data.SequenceEqual(comp.GetRawData());
             }
             return false;
         }
 
         public override int GetHashCode()
         {
-            return data.GetHashCode();
+            return _data.GetHashCode();
         }
 
         #endregion

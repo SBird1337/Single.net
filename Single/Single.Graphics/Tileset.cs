@@ -13,11 +13,11 @@ namespace Single.Graphics
     {
         #region Fields
 
-        private readonly bool is8bpp;
-        private UInt32 currentOffset;
-        private bool isRepointable;
-        private int lenght;
-        private int origSize;
+        private readonly bool _is8Bpp;
+        private UInt32 _currentOffset;
+        private bool _isRepointable;
+        private int _lenght;
+        private readonly int _origSize;
 
         #endregion
 
@@ -31,24 +31,24 @@ namespace Single.Graphics
 
         #region Constructors
 
-        private Tileset(byte[] data, bool isEncoded, bool is8bpp = false, bool isRepointable = false, int initLenght = 0,
+        private Tileset(IEnumerable<byte> data, bool isEncoded, bool is8Bpp = false, bool isRepointable = false, int initLenght = 0,
             uint initoffset = 0)
         {
-            this.is8bpp = is8bpp;
-            this.isRepointable = isRepointable;
-            lenght = initLenght;
+            _is8Bpp = is8Bpp;
+            _isRepointable = isRepointable;
+            _lenght = initLenght;
             IsEncoded = isEncoded;
-            currentOffset = initoffset;
+            _currentOffset = initoffset;
             Tiles = new List<Tile>();
             int multiplier = 32;
-            if (is8bpp)
+            if (is8Bpp)
                 multiplier = 64;
             List<Byte> tiledata = data.ToList();
             if (((tiledata.Count%multiplier) == 0))
             {
                 for (int i = 0; i < tiledata.Count/multiplier; i++)
                 {
-                    Tiles.Add(new Tile(tiledata.GetRange(multiplier*i, multiplier), is8bpp));
+                    Tiles.Add(new Tile(tiledata.GetRange(multiplier*i, multiplier), is8Bpp));
                 }
             }
             else
@@ -57,7 +57,7 @@ namespace Single.Graphics
             }
             if (isRepointable)
             {
-                origSize = GetSize();
+                _origSize = GetSize();
             }
         }
 
@@ -89,7 +89,7 @@ namespace Single.Graphics
         /// <returns>Länge des Tilesets in Bytes</returns>
         public int GetSize()
         {
-            return lenght;
+            return _lenght;
         }
 
         /// <summary>
@@ -98,29 +98,31 @@ namespace Single.Graphics
         /// <returns>Offset des Tilesets in Kontext auf ein Rom</returns>
         public uint GetCurrentOffset()
         {
-            if (!isRepointable)
+            if (!_isRepointable)
                 throw new Exception(
                     "Das Objekt kann nicht gerepointet werden, die Funktionen von IRepointable stehen nicht zur Verfügung.");
-            return currentOffset;
+            return _currentOffset;
         }
 
         /// <summary>
         ///     Legt das Offset des Tileset fest, dadurch werden die Funktionen von IRepointable verfügbar
         /// </summary>
-        /// <param name="offset">Das neue Offset des Tilesets</param>
-        public void SetCurrentOffset(uint offset)
+        /// <param name="newOffset">Das neue Offset des Tilesets</param>
+        public void SetCurrentOffset(uint newOffset)
         {
-            isRepointable = true;
-            currentOffset = offset;
-            lenght = GetRawData().Length;
+            _isRepointable = true;
+            _currentOffset = newOffset;
+            _lenght = GetRawData().Length;
         }
 
         /// <summary>
         ///     Erstellt ein Tileset, eine Palette und eine Tilemap aus dem indizierten Bitmap
         /// </summary>
         /// <param name="bmp">Indiziertes Bitmap Objekt, muss beidseitig durch 8 teilbar sein</param>
+        /// <param name="isEncoded">Gibt an ob das Ergebnis komprimiert werden soll</param>
         /// <param name="pal">Zurückgegebene Palette</param>
         /// <param name="map">Zurückgegebene Tilemap</param>
+        /// <param name="paletteMap">Gibt an welcher Paletten Index bei der Tilemap Erstellung verwendet wird</param>
         /// <returns>Tileset, welches durch das Bitmap definiert wurde</returns>
         public static Tileset FromBitmap(Bitmap bmp, bool isEncoded, out Palette pal, out Tilemap map,
             byte paletteMap = 0)
@@ -147,7 +149,7 @@ namespace Single.Graphics
                 set.Tiles = firstlist;
                 for (ushort u = 0; u < mapdict.Keys.Count; ++u)
                 {
-                    map.Entries.Add(new TilemapEntry(mapdict[u], paletteMap, false, false));
+                    map.Entries.Add(new TilemapEntry(mapdict[u], paletteMap));
                 }
                 return set;
             }
@@ -159,6 +161,7 @@ namespace Single.Graphics
         /// </summary>
         /// <param name="bmp">Indiziertes Bitmap Objekt, muss beidseitig durch 8 teilbar sein</param>
         /// <param name="pal">Zurückgegebene Palette</param>
+        /// <param name="isEncoded">Gibt an ob das Ergebnis komprimiert werden soll</param>
         /// <returns>Tileset, welches durch das Bitmap definiert wurde</returns>
         public static Tileset FromBitmap(Bitmap bmp, out Palette pal, bool isEncoded)
         {
@@ -216,11 +219,11 @@ namespace Single.Graphics
         ///     Erstellt ein Tileset aus dem angegebenen Byte Array
         /// </summary>
         /// <param name="input">Rohdaten des Tilesets</param>
-        /// <param name="is8bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
+        /// <param name="is8Bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
         /// <returns>Tileset Objekt</returns>
-        public static Tileset FromByteArray(byte[] input, bool isEncoded, bool is8bpp = false)
+        public static Tileset FromByteArray(byte[] input, bool isEncoded, bool is8Bpp = false)
         {
-            return new Tileset(input, isEncoded, is8bpp);
+            return new Tileset(input, isEncoded, is8Bpp);
         }
 
         /// <summary>
@@ -228,13 +231,13 @@ namespace Single.Graphics
         /// </summary>
         /// <param name="input">Rom mit den komprimierten Tileset Daten</param>
         /// <param name="offset">Offset der komprimierten Tileset Daten</param>
-        /// <param name="is8bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
+        /// <param name="is8Bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
         /// <returns>Tileset Objekt</returns>
-        public static Tileset FromCompressedAddress(Rom input, UInt32 offset, bool is8bpp = false)
+        public static Tileset FromCompressedAddress(Rom input, UInt32 offset, bool is8Bpp = false)
         {
             int len;
             List<Byte> tiledata = RomDecode.UnlzFromOffset(input, offset, out len);
-            return new Tileset(tiledata.ToArray(), true, is8bpp, true, len, offset);
+            return new Tileset(tiledata.ToArray(), true, is8Bpp, true, len, offset);
         }
 
         /// <summary>
@@ -243,17 +246,16 @@ namespace Single.Graphics
         /// <param name="input">Rom mit den unkomprimierten Tileset Daten</param>
         /// <param name="offset">Offset der unkomprimierten Tileset Daten</param>
         /// <param name="tileCount">Anzahl der Tiles im Tileset</param>
-        /// <param name="is8bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
+        /// <param name="is8Bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
         /// <returns>Tileset Objekt</returns>
-        public static Tileset FromUncompressedAddress(Rom input, UInt32 offset, int tileCount, bool is8bpp = false)
+        public static Tileset FromUncompressedAddress(Rom input, UInt32 offset, int tileCount, bool is8Bpp = false)
         {
             int multiplier = 32;
-            if (is8bpp)
+            if (is8Bpp)
                 multiplier = 64;
-            List<Byte> tiledata;
             input.SetStreamOffset(offset);
-            tiledata = input.ReadByteArray(tileCount*multiplier);
-            return new Tileset(tiledata.ToArray(), false, is8bpp, true, tileCount*multiplier, offset);
+            List<byte> tiledata = input.ReadByteArray(tileCount*multiplier);
+            return new Tileset(tiledata.ToArray(), false, is8Bpp, true, tileCount*multiplier, offset);
         }
 
         /// <summary>
@@ -288,7 +290,7 @@ namespace Single.Graphics
         public Bitmap ToBitmap(int imgwidth, Palette pal)
         {
             Bitmap output;
-            if (is8bpp)
+            if (_is8Bpp)
             {
                 output = new Bitmap(imgwidth*8, (int) (Math.Ceiling(Tiles.Count/(decimal) imgwidth))*8,
                     PixelFormat.Format8bppIndexed);
@@ -298,29 +300,19 @@ namespace Single.Graphics
                 output = new Bitmap(imgwidth*8, (int) (Math.Ceiling(Tiles.Count/(decimal) imgwidth))*8,
                     PixelFormat.Format4bppIndexed);
             }
-            BitmapData data;
             ColorPalette outpal = output.Palette;
             for (int i = 0; i < pal.Entries.Count(); ++i)
             {
                 outpal.Entries[i] = pal.Entries[i];
             }
             output.Palette = outpal;
-            if (is8bpp)
-            {
-                data = output.LockBits(new Rectangle(new Point(0, 0), new Size(output.Width, output.Height)),
-                    ImageLockMode.ReadWrite, PixelFormat.Format8bppIndexed);
-            }
-            else
-            {
-                data = output.LockBits(new Rectangle(new Point(0, 0), new Size(output.Width, output.Height)),
-                    ImageLockMode.ReadWrite, PixelFormat.Format4bppIndexed);
-            }
+            BitmapData data = output.LockBits(new Rectangle(new Point(0, 0), new Size(output.Width, output.Height)), ImageLockMode.ReadWrite, _is8Bpp ? PixelFormat.Format8bppIndexed : PixelFormat.Format4bppIndexed);
 
 
             var bytes = new byte[data.Height*data.Stride];
-            byte[] write = GetTileData();
+            //GetTileData();
             Marshal.Copy(data.Scan0, bytes, 0, bytes.Length);
-            if (!is8bpp)
+            if (!_is8Bpp)
             {
                 int w = output.Width/2;
                 int h = output.Height;
@@ -387,10 +379,12 @@ namespace Single.Graphics
             return output;
         }
 
-        private int ceiling(decimal val)
+/*
+        private int Ceiling(decimal val)
         {
             return (int) Math.Ceiling(val);
         }
+*/
 
         /// <summary>
         ///     Gibt ein unkomprimiertes Array der Tile Daten zurück.
@@ -410,7 +404,7 @@ namespace Single.Graphics
 
         public int GetOriginalSize()
         {
-            throw new NotImplementedException();
+            return _origSize;
         }
     }
 }

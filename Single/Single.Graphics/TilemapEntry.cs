@@ -73,7 +73,7 @@ namespace Single.Graphics
         {
             TileNumber = tileNumber;
             VerticalMirror = verticalFlip;
-            HorizontalMirror = verticalFlip;
+            HorizontalMirror = horizontalFlip;
             PaletteIndex = paletteNumber;
         }
 

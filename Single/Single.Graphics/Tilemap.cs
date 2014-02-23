@@ -11,10 +11,10 @@ namespace Single.Graphics
     {
         #region Fields
 
-        private readonly int origSize;
-        private UInt32 currentOffset;
-        private bool isRepointable;
-        private int lenght;
+        private readonly int _origSize;
+        private UInt32 _currentOffset;
+        private bool _isRepointable;
+        private int _lenght;
 
         #endregion
 
@@ -32,7 +32,7 @@ namespace Single.Graphics
         public Tilemap()
         {
             Entries = new List<TilemapEntry>();
-            origSize = GetSize();
+            _origSize = GetSize();
         }
 
         /// <summary>
@@ -43,14 +43,14 @@ namespace Single.Graphics
         /// <param name="entrycount">Länge der Tilemap in Tiles</param>
         public Tilemap(Rom input, UInt32 offset, uint entrycount)
         {
-            isRepointable = true;
+            _isRepointable = true;
             Entries = new List<TilemapEntry>();
             input.SetStreamOffset(offset);
             for (int i = 0; i < entrycount; ++i)
             {
                 Entries.Add(new TilemapEntry(input.ReadUInt16()));
             }
-            origSize = GetSize();
+            _origSize = GetSize();
         }
 
         /// <summary>
@@ -74,24 +74,24 @@ namespace Single.Graphics
                 tmap.Add(br.ReadUInt16());
             }
             Initialize(tmap.ToArray());
-            origSize = GetSize();
+            _origSize = GetSize();
         }
 
         /// <summary>
         ///     Erstellt eine Tilemap aus den angegebenen Einträgen
         /// </summary>
         /// <param name="shortEntries">Array mit unsignierten Tilemap Daten</param>
-        public Tilemap(UInt16[] shortEntries)
+        public Tilemap(IEnumerable<ushort> shortEntries)
         {
             Initialize(shortEntries);
-            origSize = GetSize();
+            _origSize = GetSize();
         }
 
         #endregion
 
         #region Methods
 
-        private void Initialize(UInt16[] shortEntries)
+        private void Initialize(IEnumerable<ushort> shortEntries)
         {
             Entries = new List<TilemapEntry>();
             foreach (UInt16 entry in shortEntries)
@@ -124,7 +124,7 @@ namespace Single.Graphics
         /// <returns>Länge der Tilemap in Bytes</returns>
         public int GetSize()
         {
-            return lenght;
+            return _lenght;
         }
 
         /// <summary>
@@ -133,21 +133,21 @@ namespace Single.Graphics
         /// <returns>Offset der Tilemap in Kontext auf ein Rom</returns>
         public uint GetCurrentOffset()
         {
-            if (!isRepointable)
+            if (!_isRepointable)
                 throw new Exception(
                     "Das Objekt kann nicht gerepointet werden, die Funktionen von IRepointable stehen nicht zur Verfügung.");
-            return currentOffset;
+            return _currentOffset;
         }
 
         /// <summary>
         ///     Legt das Offset der Tilemap fest, dadurch werden die Funktionen von IRepointable verfügbar
         /// </summary>
-        /// <param name="offset">Das neue Offset der Tilemap</param>
-        public void SetCurrentOffset(uint offset)
+        /// <param name="newOffset">Das neue Offset der Tilemap</param>
+        public void SetCurrentOffset(uint newOffset)
         {
-            isRepointable = true;
-            currentOffset = offset;
-            lenght = GetRawData().Length;
+            _isRepointable = true;
+            _currentOffset = newOffset;
+            _lenght = GetRawData().Length;
         }
 
         /// <summary>
@@ -185,7 +185,7 @@ namespace Single.Graphics
 
         public int GetOriginalSize()
         {
-            return origSize;
+            return _origSize;
         }
     }
 }

@@ -4,7 +4,7 @@
     {
         #region Functions
 
-        public string getReadableFormat(string input)
+        public string GetReadableFormat(string input)
         {
             input =
                 input.Replace("<BR>", "\r\n")
@@ -20,7 +20,7 @@
             return input;
         }
 
-        public string getTableFormat(string input)
+        public string GetTableFormat(string input)
         {
             input =
                 input.Replace("\r\n", "<BR>")

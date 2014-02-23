@@ -61,8 +61,7 @@ namespace Single.Compression
         public static List<Byte> UnlzFromOffset(Rom input, UInt32 offset)
         {
             int outLenght;
-            var ms = new MemoryStream(input.RawData);
-            ms.Position = offset;
+            var ms = new MemoryStream(input.RawData) {Position = offset};
             return Unlz(ms, out outLenght);
         }
 
@@ -75,8 +74,7 @@ namespace Single.Compression
         /// <returns>Liste mit dekomprimierten Byte Werten</returns>
         public static List<Byte> UnlzFromOffset(Rom input, UInt32 offset, out int compressedLenght)
         {
-            var ms = new MemoryStream(input.RawData);
-            ms.Position = offset;
+            var ms = new MemoryStream(input.RawData) {Position = offset};
             return Unlz(ms, out compressedLenght);
         }
 
@@ -123,8 +121,7 @@ namespace Single.Compression
         {
             int position = 0;
 
-            var compressedData = new List<byte>();
-            compressedData.Add(0x10);
+            var compressedData = new List<byte> {0x10};
 
             {
                 var pointer = (byte*) &lenght;
@@ -171,9 +168,9 @@ namespace Single.Compression
             var results = new List<int>();
 
             if ((position < 3) || ((lenght - position) < 3))
-                return new int[2] {0, 0};
+                return new[] {0, 0};
             if (!(position < lenght))
-                return new int[2] {-1, 0};
+                return new[] {-1, 0};
 
             for (int i = 1; ((i < SLIDING_WINDOW_SIZE) && (i < position)); i++)
             {
@@ -183,7 +180,7 @@ namespace Single.Compression
                 }
             }
             if (results.Count == 0)
-                return new int[2] {0, 0};
+                return new[] {0, 0};
 
             int amountOfBytes = 0;
 
@@ -208,7 +205,7 @@ namespace Single.Compression
                 if (Break)
                     break;
             }
-            return new int[] {amountOfBytes, results[0]}; //lenght of data is first, then position
+            return new[] {amountOfBytes, results[0]}; //lenght of data is first, then position
         }
 
         private static bool CanBeUnCompressed(Stream input, int offset)
@@ -270,7 +267,6 @@ namespace Single.Compression
             {
                 var bw = new BinaryReader(input);
                 UInt32 lzhead = bw.ReadUInt32();
-                Byte colorCount = Convert.ToByte((lzhead << 24) >> 24);
                 UInt32 lenght = lzhead >> 8;
 
                 do

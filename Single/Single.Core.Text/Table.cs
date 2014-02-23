@@ -8,7 +8,7 @@ namespace Single.Core.Text
     {
         #region Fields
 
-        private readonly BiDictionary<string, byte> dict;
+        private readonly BiDictionary<string, byte> _dict;
 
         #endregion
 
@@ -20,7 +20,7 @@ namespace Single.Core.Text
         /// <param name="path">Pfad zur Datei, benötigt Leserecht</param>
         public Table(string path)
         {
-            dict = new BiDictionary<string, byte>();
+            _dict = new BiDictionary<string, byte>();
             var fs = new FileStream(path, FileMode.Open);
             var sr = new StreamReader(fs, Encoding.UTF8);
             string table = sr.ReadToEnd();
@@ -29,7 +29,7 @@ namespace Single.Core.Text
             foreach (string line in table.Split(new[] {"\r\n", "\n"}, StringSplitOptions.None))
             {
                 string[] parts = line.Split('=');
-                dict.Add(parts[1], Convert.ToByte(parts[0], 16));
+                _dict.Add(parts[1], Convert.ToByte(parts[0], 16));
             }
         }
 
@@ -47,14 +47,7 @@ namespace Single.Core.Text
             var sb = new StringBuilder();
             foreach (byte b in rawData)
             {
-                if (dict.ContainsKey2(b))
-                {
-                    sb.Append(dict.GetValueByKey2(b));
-                }
-                else
-                {
-                    sb.Append("#");
-                }
+                sb.Append(_dict.ContainsKey2(b) ? _dict.GetValueByKey2(b) : "#");
             }
             return sb.ToString();
         }
@@ -76,9 +69,9 @@ namespace Single.Core.Text
                 {
                     throw new Exception("Der angegebene String konnte nicht im TableFile gefunden werden.");
                 }
-                if (dict.ContainsKey1(input.Substring(i, inLenght)))
+                if (_dict.ContainsKey1(input.Substring(i, inLenght)))
                 {
-                    bw.Write(dict.GetValueByKey1(input.Substring(i, inLenght)));
+                    bw.Write(_dict.GetValueByKey1(input.Substring(i, inLenght)));
                     i += inLenght;
                     inLenght = 1;
                 }

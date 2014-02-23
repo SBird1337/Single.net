@@ -4,12 +4,12 @@
     {
         #region Functions
 
-        public string getReadableFormat(string input)
+        public string GetReadableFormat(string input)
         {
             return input;
         }
 
-        public string getTableFormat(string input)
+        public string GetTableFormat(string input)
         {
             return input;
         }

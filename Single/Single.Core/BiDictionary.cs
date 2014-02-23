@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Single.Core
 {
@@ -26,12 +27,12 @@ namespace Single.Core
             }
         }
 
-        public ICollection<TKey1> Key1s
+        public ICollection<TKey1> Key1S
         {
             get { return _forwards.Keys; }
         }
 
-        public ICollection<TKey2> Key2s
+        public ICollection<TKey2> Key2S
         {
             get { return _reverses.Keys; }
         }
@@ -41,8 +42,7 @@ namespace Single.Core
             if (_forwards.Count != _reverses.Count)
                 throw new Exception("Allgemeiner Fehler im BiDictionary");
 
-            foreach (var item in _forwards)
-                yield return Tuple.Create(item.Key, item.Value);
+            return _forwards.Select(item => Tuple.Create(item.Key, item.Value)).GetEnumerator();
         }
 
         IEnumerator IEnumerable.GetEnumerator()
@@ -56,7 +56,7 @@ namespace Single.Core
             return ContainsKey(key, _forwards);
         }
 
-        private static bool ContainsKey<S, T>(S key, Dictionary<S, T> dict)
+        private static bool ContainsKey<TS, T>(TS key, Dictionary<TS, T> dict)
         {
             return dict.ContainsKey(key);
         }
@@ -71,7 +71,7 @@ namespace Single.Core
             return GetValueByKey(key, _forwards);
         }
 
-        private static T GetValueByKey<S, T>(S key, Dictionary<S, T> dict)
+        private static T GetValueByKey<TS, T>(TS key, Dictionary<TS, T> dict)
         {
             return dict[key];
         }
@@ -86,7 +86,7 @@ namespace Single.Core
             return TryGetValue(key, _forwards, out value);
         }
 
-        private static bool TryGetValue<S, T>(S key, Dictionary<S, T> dict, out T value)
+        private static bool TryGetValue<TS, T>(TS key, Dictionary<TS, T> dict, out T value)
         {
             return dict.TryGetValue(key, out value);
         }
@@ -125,10 +125,10 @@ namespace Single.Core
 
         public bool UpdateKey1(TKey1 oldKey, TKey1 newKey)
         {
-            return UpdateKey(oldKey, _forwards, newKey, (key1, key2) => AddOrUpdate(key1, key2));
+            return UpdateKey(oldKey, _forwards, newKey, AddOrUpdate);
         }
 
-        private static bool UpdateKey<S, T>(S oldKey, Dictionary<S, T> dict, S newKey, Action<S, T> updater)
+        private static bool UpdateKey<TS, T>(TS oldKey, Dictionary<TS, T> dict, TS newKey, Action<TS, T> updater)
         {
             T otherKey;
             if (!TryGetValue(oldKey, dict, out otherKey) || ContainsKey(newKey, dict))
@@ -146,11 +146,11 @@ namespace Single.Core
 
         public bool UpdateByKey1(TKey1 key1, TKey2 key2)
         {
-            return UpdateByKey(key1, _forwards, _reverses, key2, (k1, k2) => AddOrUpdate(k1, k2));
+            return UpdateByKey(key1, _forwards, _reverses, key2, AddOrUpdate);
         }
 
-        private static bool UpdateByKey<S, T>(S key1, Dictionary<S, T> forwards, Dictionary<T, S> reverses, T key2,
-            Action<S, T> updater)
+        private static bool UpdateByKey<TS, T>(TS key1, Dictionary<TS, T> forwards, Dictionary<T, TS> reverses, T key2,
+            Action<TS, T> updater)
         {
             T otherKey;
             if (!TryGetValue(key1, forwards, out otherKey) || ContainsKey(key2, reverses))
@@ -173,7 +173,7 @@ namespace Single.Core
             return RemoveByKey(key, _forwards, _reverses);
         }
 
-        private static bool RemoveByKey<S, T>(S key, Dictionary<S, T> keyDict, Dictionary<T, S> valueDict)
+        private static bool RemoveByKey<TS, T>(TS key, Dictionary<TS, T> keyDict, Dictionary<T, TS> valueDict)
         {
             T otherKey;
             if (!TryGetValue(key, keyDict, out otherKey))
@@ -185,7 +185,7 @@ namespace Single.Core
             return true;
         }
 
-        private static bool Remove<S, T>(S key, Dictionary<S, T> dict)
+        private static bool Remove<TS, T>(TS key, Dictionary<TS, T> dict)
         {
             return dict.Remove(key);
         }

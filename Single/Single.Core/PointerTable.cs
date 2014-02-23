@@ -8,9 +8,9 @@ namespace Single.Core
     {
         #region Fields
 
-        private readonly List<UInt32> entries;
-        private readonly int origSize;
-        private UInt32 offset;
+        private readonly List<UInt32> _entries;
+        private readonly int _origSize;
+        private UInt32 _offset;
 
         #endregion
 
@@ -24,8 +24,8 @@ namespace Single.Core
         /// <param name="count">Anzahl der Pointer</param>
         public PointerTable(Rom context, UInt32 offset, int count)
         {
-            entries = new List<UInt32>();
-            this.offset = offset;
+            _entries = new List<UInt32>();
+            _offset = offset;
             context.SetStreamOffset(offset);
             for (int i = 0; i < count; ++i)
             {
@@ -35,8 +35,8 @@ namespace Single.Core
                     throw new Exception(String.Format("An dieser Stelle wurde kein Pointer gefunden: {0}",
                         pointer.ToString("X")));
                 }
-                entries.Add(pointer);
-                origSize = (entries.Count*4);
+                _entries.Add(pointer);
+                _origSize = (_entries.Count*4);
             }
         }
 
@@ -50,7 +50,7 @@ namespace Single.Core
         /// <returns>Länge der Tabelle in Bytes</returns>
         public int GetSize()
         {
-            return entries.Count*4;
+            return _entries.Count*4;
         }
 
         /// <summary>
@@ -59,7 +59,7 @@ namespace Single.Core
         /// <returns></returns>
         public uint GetCurrentOffset()
         {
-            return offset;
+            return _offset;
         }
 
         /// <summary>
@@ -70,7 +70,7 @@ namespace Single.Core
         {
             var ms = new MemoryStream();
             var bw = new BinaryWriter(ms);
-            foreach (UInt32 entry in entries)
+            foreach (UInt32 entry in _entries)
             {
                 bw.Write(entry);
             }
@@ -80,23 +80,23 @@ namespace Single.Core
             return output;
         }
 
-        public void SetCurrentOffset(UInt32 offset)
+        public void SetCurrentOffset(UInt32 newOffset)
         {
-            this.offset = offset;
+            _offset = newOffset;
         }
 
         public int GetOriginalSize()
         {
-            return origSize;
+            return _origSize;
         }
 
         /// <summary>
         ///     Fügt einen Pointer hinzu
         /// </summary>
-        /// <param name="offset">Offset aus dem der Pointer berechnet werden soll</param>
-        public void AddOffset(UInt32 offset)
+        /// <param name="pointerOffset">Offset aus dem der Pointer berechnet werden soll</param>
+        public void AddOffset(UInt32 pointerOffset)
         {
-            entries.Add(offset | 0x8000000);
+            _entries.Add(pointerOffset | 0x8000000);
         }
 
         /// <summary>
@@ -105,7 +105,7 @@ namespace Single.Core
         /// <param name="index">Index des zu entfernenden Pointers</param>
         public void RemoveAt(int index)
         {
-            entries.RemoveAt(index);
+            _entries.RemoveAt(index);
         }
 
         /// <summary>
@@ -115,7 +115,7 @@ namespace Single.Core
         /// <returns>Adresse, die aus dem Pointer berechnet wird</returns>
         public UInt32 GetOffset(int index)
         {
-            return entries[index] & 0x1FFFFFF;
+            return _entries[index] & 0x1FFFFFF;
         }
 
         /// <summary>
@@ -125,7 +125,7 @@ namespace Single.Core
         /// <returns>Pointer an entsprechendem Index</returns>
         public UInt32 GetPointer(int index)
         {
-            return entries[index] & 0x8FFFFFF;
+            return _entries[index] & 0x8FFFFFF;
         }
 
         #endregion

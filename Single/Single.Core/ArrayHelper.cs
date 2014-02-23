@@ -11,14 +11,14 @@ namespace Single.Core
         /// <summary>
         ///     Gibt alle Vorkommen von Sequence in SearchArray zurück
         /// </summary>
-        /// <param name="SearchArray">Das zu durchsuchende Array</param>
-        /// <param name="Sequence">Die zu suchende Byte Sequenz</param>
+        /// <param name="searchArray">Das zu durchsuchende Array</param>
+        /// <param name="sequence">Die zu suchende Byte Sequenz</param>
         /// <returns></returns>
-        public static IEnumerable<int> FindAll(byte[] SearchArray, byte[] Sequence)
+        public static IEnumerable<int> FindAll(byte[] searchArray, byte[] sequence)
         {
             Encoding latin1 = Encoding.GetEncoding("iso-8859-1");
-            string sHaystack = latin1.GetString(SearchArray);
-            string sNeedle = latin1.GetString(Sequence);
+            string sHaystack = latin1.GetString(searchArray);
+            string sNeedle = latin1.GetString(sequence);
             for (Match m = Regex.Match(sHaystack, Regex.Escape(sNeedle)); m.Success; m = m.NextMatch())
             {
                 yield return m.Index;

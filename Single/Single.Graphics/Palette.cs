@@ -12,10 +12,10 @@ namespace Single.Graphics
         #region Fields
 
         private readonly Color[] _entries;
-        private readonly int origSize;
-        private UInt32 currentOffset;
-        private bool isRepointable;
-        private int lenght;
+        private readonly int _origSize;
+        private UInt32 _currentOffset;
+        private bool _isRepointable;
+        private int _lenght;
 
         #endregion
 
@@ -36,6 +36,7 @@ namespace Single.Graphics
         ///     Erstellt eine Palette aus den angegebenen Farbwerten
         /// </summary>
         /// <param name="entries">Array aus System.Color Werten, muss 16 oder 256 Einträge beinhalten</param>
+        /// <param name="isEncoded">Gibt an ob die Palette komprimiert vorhanden ist</param>
         public Palette(Color[] entries, bool isEncoded = false)
         {
             IsEncoded = isEncoded;
@@ -47,7 +48,7 @@ namespace Single.Graphics
             {
                 throw new Exception("Das angegebene Farbarray muss entweder 16 oder 256 Farben haben.");
             }
-            origSize = GetSize();
+            _origSize = GetSize();
         }
 
         /// <summary>
@@ -60,51 +61,50 @@ namespace Single.Graphics
         public Palette(Rom input, UInt32 offset, bool isEncoded, bool is256Pal = false)
         {
             IsEncoded = isEncoded;
-            isRepointable = true;
-            currentOffset = offset;
+            _isRepointable = true;
+            _currentOffset = offset;
             short cols = 16;
             if (is256Pal)
             {
                 cols = 256;
             }
             _entries = new Color[cols];
-            var EntryList = new List<UInt16>();
+            var entryList = new List<UInt16>();
             if (!isEncoded)
             {
                 {
-                    lenght = EntryList.Count()*2;
+                    _lenght = entryList.Count()*2;
                     input.SetStreamOffset(offset);
-                    EntryList = input.ReadUShortArray(cols);
+                    entryList = input.ReadUShortArray(cols);
                 }
             }
             else
             {
-                var unlz = new List<Byte>();
-                unlz = RomDecode.UnlzFromOffset(input, offset, out lenght);
+                List<byte> unlz = RomDecode.UnlzFromOffset(input, offset, out _lenght);
                 for (int i = 0; i < unlz.Count/2; i++)
                 {
                     UInt16 temp = unlz[(2*i)];
                     temp |= (UInt16) ((unlz[1 + (i*2)]) << 8);
-                    EntryList.Add(temp);
+                    entryList.Add(temp);
                 }
             }
             for (int i = 0; i < cols; i++)
             {
-                var red = (UInt16) ((EntryList[i] & 31)*8);
-                var green = (UInt16) (((EntryList[i] & 992) >> 5)*8);
-                var blue = (UInt16) (((EntryList[i] & 31744) >> 10)*8);
+                var red = (UInt16) ((entryList[i] & 31)*8);
+                var green = (UInt16) (((entryList[i] & 992) >> 5)*8);
+                var blue = (UInt16) (((entryList[i] & 31744) >> 10)*8);
                 _entries[i] = Color.FromArgb(red, green, blue);
             }
             if (_entries.Length != cols)
             {
                 throw new Exception("Die angegebene Palette hat nicht die angegebene Anzahl an Farben");
             }
-            origSize = GetSize();
+            _origSize = GetSize();
         }
 
         public int GetOriginalSize()
         {
-            return origSize;
+            return _origSize;
         }
 
         #endregion
@@ -123,9 +123,9 @@ namespace Single.Graphics
                 var r = (byte) (Math.Round((double) (c.R/8)));
                 var g = (byte) (Math.Round((double) (c.G/8)));
                 var b = (byte) (Math.Round((double) (c.B/8)));
-                var ColorEntry = (UInt16) (r | (g << 5) | (b << 10));
-                output.Add((byte) (ColorEntry & 0xFF));
-                output.Add((byte) ((ColorEntry & 0xFF00) >> 8));
+                var colorEntry = (UInt16) (r | (g << 5) | (b << 10));
+                output.Add((byte) (colorEntry & 0xFF));
+                output.Add((byte) ((colorEntry & 0xFF00) >> 8));
             }
             if (!IsEncoded)
             {
@@ -140,7 +140,7 @@ namespace Single.Graphics
         /// <returns>Länge der Palette in Bytes</returns>
         public int GetSize()
         {
-            return lenght;
+            return _lenght;
         }
 
         /// <summary>
@@ -149,21 +149,21 @@ namespace Single.Graphics
         /// <returns>Offset der Palette in Kontext auf ein Rom</returns>
         public uint GetCurrentOffset()
         {
-            if (!isRepointable)
+            if (!_isRepointable)
                 throw new Exception(
                     "Das Objekt kann nicht gerepointet werden, die Funktionen von IRepointable stehen nicht zur Verfügung.");
-            return currentOffset;
+            return _currentOffset;
         }
 
         /// <summary>
         ///     Legt das Offset der Palette fest, dadurch werden die Funktionen von IRepointable verfügbar
         /// </summary>
-        /// <param name="offset">Das neue Offset der Palette</param>
-        public void SetCurrentOffset(uint offset)
+        /// <param name="newOffset">Das neue Offset der Palette</param>
+        public void SetCurrentOffset(uint newOffset)
         {
-            isRepointable = true;
-            currentOffset = offset;
-            lenght = GetRawData().Length;
+            _isRepointable = true;
+            _currentOffset = newOffset;
+            _lenght = GetRawData().Length;
         }
 
         /// <summary>
