@@ -38,10 +38,10 @@ namespace Single.Compression
         /// </summary>
         /// <param name="input">Zu verwendendes Rom</param>
         /// <returns></returns>
-        public static List<UInt32> Scan(Rom input)
+        public static List<uint> Scan(Rom input)
         {
             var ms = new MemoryStream(input.RawData);
-            var output = new List<UInt32>();
+            var output = new List<uint>();
             while (ms.Position < ms.Length - 4)
             {
                 var position = (UInt32) ms.Position;
