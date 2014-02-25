@@ -1,5 +1,7 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 
 namespace Single.Core.Text
@@ -8,7 +10,7 @@ namespace Single.Core.Text
     {
         #region Fields
 
-        private readonly BiDictionary<string, byte> _dict;
+        private readonly List<IPokehexChar> _chars; 
 
         #endregion
 
@@ -20,7 +22,7 @@ namespace Single.Core.Text
         /// <param name="path">Pfad zur Datei, benötigt Leserecht</param>
         public Table(string path)
         {
-            _dict = new BiDictionary<string, byte>();
+            _chars = new List<IPokehexChar>();
             var fs = new FileStream(path, FileMode.Open);
             var sr = new StreamReader(fs, Encoding.UTF8);
             string table = sr.ReadToEnd();
@@ -29,7 +31,10 @@ namespace Single.Core.Text
             foreach (string line in table.Split(new[] {"\r\n", "\n"}, StringSplitOptions.None))
             {
                 string[] parts = line.Split('=');
-                _dict.Add(parts[1], Convert.ToByte(parts[0], 16));
+                if (parts[0].Length < 3)
+                    _chars.Add(new NormalChar(Convert.ToByte(parts[0], 16), parts[1]));
+                else
+                    _chars.Add(new SpecialChar(Convert.ToUInt16(parts[0], 16), parts[1]));
             }
         }
 
@@ -45,9 +50,33 @@ namespace Single.Core.Text
         public string Decode(byte[] rawData)
         {
             var sb = new StringBuilder();
-            foreach (byte b in rawData)
+            BinaryReader br = new BinaryReader(new MemoryStream(rawData));
+            while (br.BaseStream.Position < br.BaseStream.Length)
             {
-                sb.Append(_dict.ContainsKey2(b) ? _dict.GetValueByKey2(b) : "#");
+                byte b = br.ReadByte();
+                IEnumerable<IPokehexChar> foundCharsByte =
+                    _chars.Where(value => value.Type == CharType.Byte && Convert.ToByte(value.Value) == b);
+                var bytePokehexChar = foundCharsByte as IPokehexChar[] ?? foundCharsByte.ToArray();
+                if (bytePokehexChar.Count() > 1)
+                    throw new Exception("Doppelter Eintrag im Table File");
+                if(bytePokehexChar.Any())
+                    sb.Append(bytePokehexChar.First().ReadableValue);
+                else
+                {
+                    br.BaseStream.Position--;
+                    if (br.BaseStream.Position + 1 >= br.BaseStream.Length)
+                    {
+                        sb.Append("#");
+                        break;
+                    }
+                    ushort s = br.ReadUInt16();
+                    IEnumerable<IPokehexChar> foundCharsShort =
+                        _chars.Where(value => value.Type == CharType.Halfword && (ushort) value.Value == s);
+                    var shortPokehexChar = foundCharsShort as IPokehexChar[] ?? foundCharsShort.ToArray();
+                    if(shortPokehexChar.Count() > 1)
+                        throw new Exception("Doppelter Eintrag im Table File");
+                    sb.Append(shortPokehexChar.Any() ? shortPokehexChar.First().ReadableValue : "#");
+                }
             }
             return sb.ToString();
         }
@@ -69,12 +98,28 @@ namespace Single.Core.Text
                 {
                     throw new Exception("Der angegebene String konnte nicht im TableFile gefunden werden.");
                 }
-                if (_dict.ContainsKey1(input.Substring(i, inLenght)))
+
+                int lenght = inLenght;
+                IPokehexChar[] foundChars =
+                    _chars.Where(value => value.ReadableValue == input.Substring(i, lenght)).ToArray();
+                if(foundChars.Count() > 1)
+                    throw new Exception("Doppelter Eintrag im Table File");
+                if (foundChars.Any())
                 {
-                    bw.Write(_dict.GetValueByKey1(input.Substring(i, inLenght)));
+                    IPokehexChar foundChar = foundChars.First();
+                    if(foundChar.Type == CharType.Byte)
+                        bw.Write(Convert.ToByte(foundChar.Value));
+                    else
+                        bw.Write((ushort)foundChar.Value);
                     i += inLenght;
                     inLenght = 1;
                 }
+                    //if (_dict.ContainsKey1(input.Substring(i, inLenght)))
+                    //{
+                    //    bw.Write(_dict.GetValueByKey1(input.Substring(i, inLenght)));
+                    //    i += inLenght;
+                    //    inLenght = 1;
+                    //}
                 else
                 {
                     inLenght++;

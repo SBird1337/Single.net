@@ -39,6 +39,10 @@
   </ItemGroup>
   <ItemGroup>
     <Compile Include="Compression\RomDecode.cs" />
+    <Compile Include="Core.Text\IPokehexChar.cs" />
+    <Compile Include="Core.Text\NormalChar.cs" />
+    <Compile Include="Core.Text\PokehexCharBase.cs" />
+    <Compile Include="Core.Text\SpecialChar.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core.Text\HexEncoder.cs" />
     <Compile Include="Core.Text\IParseInformationProvider.cs" />
