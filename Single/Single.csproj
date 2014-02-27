@@ -9,7 +9,7 @@
     <AppDesignerFolder>Properties</AppDesignerFolder>
     <RootNamespace>Single</RootNamespace>
     <AssemblyName>Single</AssemblyName>
-    <TargetFrameworkVersion>v4.0</TargetFrameworkVersion>
+    <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
   </PropertyGroup>
@@ -51,7 +51,6 @@
     <Compile Include="Core.Text\RomStringHelper.cs" />
     <Compile Include="Core.Text\Table.cs" />
     <Compile Include="Core\ArrayHelper.cs" />
-    <Compile Include="Core\BiDictionary.cs" />
     <Compile Include="Core\IRepointable.cs" />
     <Compile Include="Core\IRomWritable.cs" />
     <Compile Include="Core\PointerTable.cs" />

@@ -414,8 +414,8 @@ namespace Single.Core
                 if (disposing)
                 {
                     DisposeStream();
-                    _romReader.Dispose();
-                    _romWriter.Dispose();
+                    _romReader.Close();
+                    _romWriter.Close();
                 }
                 _rawdata = null;
                 _patchentries = null;

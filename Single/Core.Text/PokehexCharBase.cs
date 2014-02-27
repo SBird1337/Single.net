@@ -7,9 +7,9 @@ namespace Single.Core.Text
 {
     public abstract class PokehexCharBase : IPokehexChar
     {
-        private byte _byteValue;
-        private ushort _hwValue;
-        private string _readable;
+        private readonly byte _byteValue;
+        private readonly ushort _hwValue;
+        private readonly string _readable;
 
         protected PokehexCharBase(object value, string readable)
         {
