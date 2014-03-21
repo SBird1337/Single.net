@@ -12,3 +12,4 @@ D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\bin\
 D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\bin\Release\Single.pdb
 D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\obj\Release\Single.dll
 D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\obj\Release\Single.pdb
+D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\obj\Release\Single.csprojResolveAssemblyReference.cache

@@ -10,7 +10,7 @@ namespace Single.Core.Text
     {
         #region Fields
 
-        private readonly List<IPokehexChar> _chars; 
+        private readonly List<TableEntry> _chars;
 
         #endregion
 
@@ -20,21 +20,20 @@ namespace Single.Core.Text
         ///     Erstellt einen Table aus einer Tablefile Datei
         /// </summary>
         /// <param name="path">Pfad zur Datei, benötigt Leserecht</param>
-        public Table(string path)
+        /// <param name="provider">Custom IEscapeSequenceProvider</param>
+        public Table(string path, IEscapeSequenceProvider provider = null)
         {
-            _chars = new List<IPokehexChar>();
+            if (provider == null)
+                provider = new SingleEscapes();
+            _chars = new List<TableEntry>();
             var fs = new FileStream(path, FileMode.Open);
             var sr = new StreamReader(fs, Encoding.UTF8);
             string table = sr.ReadToEnd();
             fs.Close();
             sr.Dispose();
-            foreach (string line in table.Split(new[] {"\r\n", "\n"}, StringSplitOptions.None))
+            foreach (string line in table.Split(new[] { "\r\n", "\n" }, StringSplitOptions.None))
             {
-                string[] parts = line.Split('=');
-                if (parts[0].Length < 3)
-                    _chars.Add(new NormalChar(Convert.ToByte(parts[0], 16), parts[1]));
-                else
-                    _chars.Add(new SpecialChar(Convert.ToUInt16(parts[0], 16), parts[1]));
+                _chars.Add(TableEntry.FromString(line, provider));
             }
         }
 
@@ -49,34 +48,52 @@ namespace Single.Core.Text
         /// <returns>Lesbare ASCII Zeichenkette(string) der Daten</returns>
         public string Decode(byte[] rawData)
         {
-            var sb = new StringBuilder();
+            StringBuilder sb = new StringBuilder();
             BinaryReader br = new BinaryReader(new MemoryStream(rawData));
             while (br.BaseStream.Position < br.BaseStream.Length)
             {
-                byte b = br.ReadByte();
-                IEnumerable<IPokehexChar> foundCharsByte =
-                    _chars.Where(value => value.Type == CharType.Byte && Convert.ToByte(value.Value) == b);
-                var bytePokehexChar = foundCharsByte as IPokehexChar[] ?? foundCharsByte.ToArray();
-                if (bytePokehexChar.Count() > 1)
-                    throw new Exception("Doppelter Eintrag im Table File");
-                if(bytePokehexChar.Any())
-                    sb.Append(bytePokehexChar.First().ReadableValue);
-                else
+                var readSequence = new List<byte> { br.ReadByte() };
+                int length = 1;
+                int count;
+                string output = "";
+                while ((count = _chars.Count(c => c.Representation.Take(length).ToArray().SequenceEqual(readSequence.ToArray()))) >= 1)
                 {
-                    br.BaseStream.Position--;
-                    if (br.BaseStream.Position + 1 >= br.BaseStream.Length)
+                    if (count == 0)
+                        throw new Exception(string.Format("Die Sequenz {0} kann nicht mit mit dem Table dekodiert werden.", readSequence.ToArray()));
+                    if (count == 1)
                     {
-                        sb.Append("#");
+                        output = _chars.First(c => c.Representation.Take(length).SequenceEqual(readSequence.ToArray())).Display;
                         break;
                     }
-                    ushort s = br.ReadUInt16();
-                    IEnumerable<IPokehexChar> foundCharsShort =
-                        _chars.Where(value => value.Type == CharType.Halfword && (ushort) value.Value == s);
-                    var shortPokehexChar = foundCharsShort as IPokehexChar[] ?? foundCharsShort.ToArray();
-                    if(shortPokehexChar.Count() > 1)
-                        throw new Exception("Doppelter Eintrag im Table File");
-                    sb.Append(shortPokehexChar.Any() ? shortPokehexChar.First().ReadableValue : "#");
+
+                    readSequence.Add(br.ReadByte());
+                    length++;
+
                 }
+                sb.Append(output);
+                //IEnumerable<IPokehexChar> foundCharsByte =
+                //    _chars.Where(value => value.Type == CharType.Byte && Convert.ToByte(value.Value) == b);
+                //var bytePokehexChar = foundCharsByte as IPokehexChar[] ?? foundCharsByte.ToArray();
+                //if (bytePokehexChar.Count() > 1)
+                //    throw new Exception("Doppelter Eintrag im Table File");
+                //if(bytePokehexChar.Any())
+                //    sb.Append(bytePokehexChar.First().ReadableValue);
+                //else
+                //{
+                //    br.BaseStream.Position--;
+                //    if (br.BaseStream.Position + 1 >= br.BaseStream.Length)
+                //    {
+                //        sb.Append("#");
+                //        break;
+                //    }
+                //    ushort s = br.ReadUInt16();
+                //    IEnumerable<IPokehexChar> foundCharsShort =
+                //        _chars.Where(value => value.Type == CharType.Halfword && (ushort) value.Value == s);
+                //    var shortPokehexChar = foundCharsShort as IPokehexChar[] ?? foundCharsShort.ToArray();
+                //    if(shortPokehexChar.Count() > 1)
+                //        throw new Exception("Doppelter Eintrag im Table File");
+                //    sb.Append(shortPokehexChar.Any() ? shortPokehexChar.First().ReadableValue : "#");
+                //}
             }
             return sb.ToString();
         }
@@ -100,26 +117,23 @@ namespace Single.Core.Text
                 }
 
                 int lenght = inLenght;
-                IPokehexChar[] foundChars =
-                    _chars.Where(value => value.ReadableValue == input.Substring(i, lenght)).ToArray();
-                if(foundChars.Count() > 1)
+                TableEntry[] foundChars =
+                    _chars.Where(value => value.Display == input.Substring(i, lenght)).ToArray();
+                if (foundChars.Count() > 1)
                     throw new Exception("Doppelter Eintrag im Table File");
                 if (foundChars.Any())
                 {
-                    IPokehexChar foundChar = foundChars.First();
-                    if(foundChar.Type == CharType.Byte)
-                        bw.Write(Convert.ToByte(foundChar.Value));
-                    else
-                        bw.Write((ushort)foundChar.Value);
+                    TableEntry foundChar = foundChars.First();
+                    bw.Write(foundChar.Representation);
                     i += inLenght;
                     inLenght = 1;
                 }
-                    //if (_dict.ContainsKey1(input.Substring(i, inLenght)))
-                    //{
-                    //    bw.Write(_dict.GetValueByKey1(input.Substring(i, inLenght)));
-                    //    i += inLenght;
-                    //    inLenght = 1;
-                    //}
+                //if (_dict.ContainsKey1(input.Substring(i, inLenght)))
+                //{
+                //    bw.Write(_dict.GetValueByKey1(input.Substring(i, inLenght)));
+                //    i += inLenght;
+                //    inLenght = 1;
+                //}
                 else
                 {
                     inLenght++;
