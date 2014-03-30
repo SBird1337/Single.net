@@ -260,7 +260,7 @@ namespace Single.Compression
         {
             long op = input.Position;
             if (!CanBeUnCompressed(input, (int) input.Position))
-                throw new Exception("Der angegebene Byte-Stream kann nicht dekomprimiert werden");
+                throw new Exception(string.Format("Der angegebene Byte-Stream kann nicht dekomprimiert werden: 0x{0}", op.ToString("X")));
             var output = new List<Byte>();
             input.Position = op;
             long position = input.Position;

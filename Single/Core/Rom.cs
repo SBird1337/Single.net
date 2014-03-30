@@ -237,7 +237,7 @@ namespace Single.Core
         /// <returns>Erfolg des Vorgangs</returns>
         public bool WriteByte(Byte b)
         {
-            return WriteByteArray(BitConverter.GetBytes(b));
+            return WriteByteArray(new[]{b});
         }
 
         /// <summary>
