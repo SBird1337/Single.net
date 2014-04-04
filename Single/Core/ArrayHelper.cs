@@ -1,4 +1,6 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
+using System.Net.Configuration;
 using System.Text;
 using System.Text.RegularExpressions;
 
@@ -14,6 +16,7 @@ namespace Single.Core
         /// <param name="searchArray">Das zu durchsuchende Array</param>
         /// <param name="sequence">Die zu suchende Byte Sequenz</param>
         /// <returns></returns>
+        [Obsolete("Use the extension method of byte[]")]
         public static IEnumerable<int> FindAll(byte[] searchArray, byte[] sequence)
         {
             Encoding latin1 = Encoding.GetEncoding("iso-8859-1");

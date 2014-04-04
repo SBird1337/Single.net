@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using Single.Extensions;
 
 namespace Single.Core
 {
@@ -237,7 +238,7 @@ namespace Single.Core
         /// <returns>Erfolg des Vorgangs</returns>
         public bool WriteByte(Byte b)
         {
-            return WriteByteArray(new[]{b});
+            return WriteByteArray(new[] {b});
         }
 
         /// <summary>
@@ -332,6 +333,12 @@ namespace Single.Core
         /// <param name="sequence">Die zu suchende Sequenz</param>
         /// <returns>Byte Array mit allen Positionen an denen Sequence vorkommt</returns>
         public IEnumerable<int> FindByteSequence(byte[] sequence)
+        {
+            return _rawdata.IndexOfSequence(sequence, 0);
+        }
+
+        [Obsolete("Use FindByteSequence")]
+        public IEnumerable<int> FindByteSequenceOld(byte[] sequence)
         {
             return ArrayHelper.FindAll(_rawdata, sequence);
         }
