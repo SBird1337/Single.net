@@ -120,18 +120,14 @@ namespace Single.Graphics
             var output = new List<byte>();
             foreach (Color c in _entries)
             {
-                var r = (byte) (Math.Round((c.R/8.0)));
-                var g = (byte) (Math.Round((c.G/8.0)));
-                var b = (byte) (Math.Round((c.B/8.0)));
-                var colorEntry = (UInt16) (r | (g << 5) | (b << 10));
+                var r = (byte) (Math.Floor((c.R/8.0)));
+                var g = (byte)(Math.Floor((c.G / 8.0)));
+                var b = (byte)(Math.Floor((c.B / 8.0)));
+                var colorEntry = (UInt16) (r | ((g << 5) | (b << 10)));
                 output.Add((byte) (colorEntry & 0xFF));
                 output.Add((byte) ((colorEntry & 0xFF00) >> 8));
             }
-            if (!IsEncoded)
-            {
-                return output.ToArray();
-            }
-            return RomDecode.LzCompressData(output.ToArray());
+            return !IsEncoded ? output.ToArray() : RomDecode.LzCompressData(output.ToArray());
         }
 
         /// <summary>

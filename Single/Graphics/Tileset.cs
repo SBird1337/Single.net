@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
+using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Single.Compression;
@@ -165,54 +166,49 @@ namespace Single.Graphics
         /// <returns>Tileset, welches durch das Bitmap definiert wurde</returns>
         public static Tileset FromBitmap(Bitmap bmp, out Palette pal, bool isEncoded)
         {
-            if (bmp.Width%8 == 0 && bmp.Height%8 == 0)
+            if (bmp.Width%8 != 0 || bmp.Height%8 != 0)
+                throw new Exception("Das angegebene Bitmap hat nicht das Format eines Tilesets. (W=a*8; H=a*8)");
+            var tiles = new List<byte>();
+            List<Color> colorEntries = bmp.Palette.Entries.ToList();
+            pal = new Palette(bmp.Palette.Entries, isEncoded);
+            if (bmp.PixelFormat == PixelFormat.Format4bppIndexed)
             {
-                var tiles = new List<byte>();
-                List<Color> colorEntries = bmp.Palette.Entries.ToList();
-                pal = new Palette(bmp.Palette.Entries);
-                if (bmp.PixelFormat == PixelFormat.Format4bppIndexed)
+                for (int y = 0; y < bmp.Height; y += 8)
                 {
-                    for (int y = 0; y < bmp.Height; y += 8)
+                    for (int x = 0; x < bmp.Width; x += 8)
                     {
-                        for (int x = 0; x < bmp.Width; x += 8)
+                        for (int y1 = 0; y1 < 8; y1++)
                         {
-                            for (int y1 = 0; y1 < 8; y1++)
+                            for (int x1 = 0; x1 < 8; x1 += 2)
                             {
-                                for (int x1 = 0; x1 < 8; x1 += 2)
-                                {
-                                    Color c1 = bmp.GetPixel(x + x1, y + y1);
-                                    Color c2 = bmp.GetPixel(x + x1 + 1, y + y1);
+                                Color c1 = bmp.GetPixel(x + x1, y + y1);
+                                Color c2 = bmp.GetPixel(x + x1 + 1, y + y1);
 
-                                    var b2 = (byte) colorEntries.IndexOf(c1);
-                                    var b1 = (byte) colorEntries.IndexOf(c2);
-                                    tiles.Add((byte) ((b1 << 4) | b2));
-                                }
+                                var b2 = (byte) colorEntries.IndexOf(c1);
+                                var b1 = (byte) colorEntries.IndexOf(c2);
+                                tiles.Add((byte) ((b1 << 4) | b2));
                             }
                         }
                     }
-                    return new Tileset(tiles.ToArray(), isEncoded);
                 }
-                if (bmp.PixelFormat == PixelFormat.Format8bppIndexed)
-                {
-                    for (int y = 0; y < bmp.Height; y += 8)
-                    {
-                        for (int x = 0; x < bmp.Width; x += 8)
-                        {
-                            for (int y1 = 0; y1 < 8; y1++)
-                            {
-                                for (int x1 = 0; x1 < 8; x1++)
-                                {
-                                    Color c1 = bmp.GetPixel(x + x1, y + y1);
-                                    tiles.Add((byte) colorEntries.IndexOf(c1));
-                                }
-                            }
-                        }
-                    }
-                    return new Tileset(tiles.ToArray(), isEncoded, true);
-                }
-                throw new Exception("Image is not indexed");
+                return new Tileset(tiles.ToArray(), isEncoded);
             }
-            throw new Exception("Das angegebene Bitmap hat nicht das Format eines Tilesets. (W=a*8; H=a*8)");
+            if (bmp.PixelFormat != PixelFormat.Format8bppIndexed) throw new Exception("Image is not indexed");
+            for (int y = 0; y < bmp.Height; y += 8)
+            {
+                for (int x = 0; x < bmp.Width; x += 8)
+                {
+                    for (int y1 = 0; y1 < 8; y1++)
+                    {
+                        for (int x1 = 0; x1 < 8; x1++)
+                        {
+                            Color c1 = bmp.GetPixel(x + x1, y + y1);
+                            tiles.Add((byte) colorEntries.IndexOf(c1));
+                        }
+                    }
+                }
+            }
+            return new Tileset(tiles.ToArray(), isEncoded, true);
         }
 
         /// <summary>
