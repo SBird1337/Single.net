@@ -1,4 +1,6 @@
-﻿namespace Single.Core.Text
+﻿using System;
+
+namespace Single.Core.Text
 {
     public class HexEncoder
     {
@@ -40,6 +42,24 @@
         public byte[] GetParsedBytes(string input)
         {
             return EncodingTable.Encode(_parser.GetTableFormat(input));
+        }
+
+        /// <summary>
+        ///     Überprüft die angegebene Zeichenkette auf Validität (Wird beim Parsen eine Ausnahme geworfen?)
+        /// </summary>
+        /// <param name="s">Zu prüfende Zeichenkette</param>
+        /// <returns></returns>
+        public bool IsValidPString(string s)
+        {
+            try
+            {
+                GetParsedBytes(s);
+                return true;
+            }
+            catch
+            {
+                return false;
+            }
         }
 
         #endregion

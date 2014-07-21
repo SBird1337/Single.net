@@ -6,4 +6,3 @@ D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\bin\
 D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\bin\Debug\Single.pdb
 D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\obj\Debug\Single.dll
 D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\obj\Debug\Single.pdb
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Single\obj\Debug\Single.csprojResolveAssemblyReference.cache
