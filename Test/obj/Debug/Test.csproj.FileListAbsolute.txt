@@ -1,8 +1,0 @@
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\bin\Debug\Test.exe.config
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\bin\Debug\Test.exe
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\bin\Debug\Test.pdb
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\bin\Debug\Single.dll
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\bin\Debug\Single.pdb
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\obj\Debug\Test.csprojResolveAssemblyReference.cache
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\obj\Debug\Test.exe
-D:\Users\Philipp\Documents\Visual Studio 2012\Projects\Single\Single\Test\obj\Debug\Test.pdb
