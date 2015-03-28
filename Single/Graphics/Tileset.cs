@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Drawing;
 using System.Drawing.Imaging;
-using System.Globalization;
 using System.Linq;
 using System.Runtime.InteropServices;
 using Single.Compression;
@@ -17,7 +16,6 @@ namespace Single.Graphics
         private readonly bool _is8Bpp;
         private UInt32 _currentOffset;
         private bool _isRepointable;
-        private int _lenght;
         private readonly int _origSize;
 
         #endregion
@@ -32,12 +30,10 @@ namespace Single.Graphics
 
         #region Constructors
 
-        private Tileset(IEnumerable<byte> data, bool isEncoded, bool is8Bpp = false, bool isRepointable = false, int initLenght = 0,
-            uint initoffset = 0)
+        private Tileset(IEnumerable<byte> data, bool isEncoded, bool is8Bpp = false, bool isRepointable = false, uint initoffset = 0)
         {
             _is8Bpp = is8Bpp;
             _isRepointable = isRepointable;
-            _lenght = initLenght;
             IsEncoded = isEncoded;
             _currentOffset = initoffset;
             Tiles = new List<Tile>();
@@ -90,7 +86,7 @@ namespace Single.Graphics
         /// <returns>Länge des Tilesets in Bytes</returns>
         public int GetSize()
         {
-            return _lenght;
+            return GetRawData().Length;
         }
 
         /// <summary>
@@ -113,7 +109,6 @@ namespace Single.Graphics
         {
             _isRepointable = true;
             _currentOffset = newOffset;
-            _lenght = GetRawData().Length;
         }
 
         /// <summary>
@@ -170,7 +165,7 @@ namespace Single.Graphics
                 throw new Exception("Das angegebene Bitmap hat nicht das Format eines Tilesets. (W=a*8; H=a*8)");
             var tiles = new List<byte>();
             List<Color> colorEntries = bmp.Palette.Entries.ToList();
-            pal = new Palette(bmp.Palette.Entries, isEncoded);
+            pal = new Palette(bmp.Palette.Entries.Select(col => new PaletteEntry(col.R, col.G, col.B)).ToArray(), isEncoded);
             if (bmp.PixelFormat == PixelFormat.Format4bppIndexed)
             {
                 for (int y = 0; y < bmp.Height; y += 8)
@@ -232,9 +227,8 @@ namespace Single.Graphics
         /// <returns>Tileset Objekt</returns>
         public static Tileset FromCompressedAddress(Rom input, UInt32 offset, bool is8Bpp = false)
         {
-            int len;
-            List<Byte> tiledata = RomDecode.UnlzFromOffset(input, offset, out len);
-            return new Tileset(tiledata.ToArray(), true, is8Bpp, true, len, offset);
+            byte[] tiledata = RomDecode.LzUncompress(input, offset);
+            return new Tileset(tiledata.ToArray(), true, is8Bpp, true, offset);
         }
 
         /// <summary>
@@ -252,7 +246,7 @@ namespace Single.Graphics
                 multiplier = 64;
             input.SetStreamOffset(offset);
             List<byte> tiledata = input.ReadByteArray(tileCount*multiplier);
-            return new Tileset(tiledata.ToArray(), false, is8Bpp, true, tileCount*multiplier, offset);
+            return new Tileset(tiledata.ToArray(), false, is8Bpp, true, offset);
         }
 
         /// <summary>
@@ -300,7 +294,7 @@ namespace Single.Graphics
             ColorPalette outpal = output.Palette;
             for (int i = 0; i < pal.Entries.Count(); ++i)
             {
-                outpal.Entries[i] = pal.Entries[i];
+                outpal.Entries[i] = pal.Entries[i].ToColor();
             }
             output.Palette = outpal;
             BitmapData data = output.LockBits(new Rectangle(new Point(0, 0), new Size(output.Width, output.Height)), ImageLockMode.ReadWrite, _is8Bpp ? PixelFormat.Format8bppIndexed : PixelFormat.Format4bppIndexed);

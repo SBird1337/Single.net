@@ -11,7 +11,7 @@ namespace Single.Graphics
     {
         #region Fields
 
-        private readonly Color[] _entries;
+        private readonly PaletteEntry[] _entries;
         private readonly int _origSize;
         private UInt32 _currentOffset;
         private bool _isRepointable;
@@ -21,7 +21,7 @@ namespace Single.Graphics
 
         #region Properties
 
-        public Color[] Entries
+        public PaletteEntry[] Entries
         {
             get { return _entries; }
         }
@@ -37,7 +37,7 @@ namespace Single.Graphics
         /// </summary>
         /// <param name="entries">Array aus System.Color Werten, muss 16 oder 256 Einträge beinhalten</param>
         /// <param name="isEncoded">Gibt an ob die Palette komprimiert vorhanden ist</param>
-        public Palette(Color[] entries, bool isEncoded = false)
+        public Palette(PaletteEntry[] entries, bool isEncoded = false)
         {
             IsEncoded = isEncoded;
             if (entries.Count() == 16 || entries.Count() == 256)
@@ -68,20 +68,19 @@ namespace Single.Graphics
             {
                 cols = 256;
             }
-            _entries = new Color[cols];
+            _entries = new PaletteEntry[cols];
             var entryList = new List<UInt16>();
             if (!isEncoded)
             {
                 {
-                    _lenght = entryList.Count()*2;
                     input.SetStreamOffset(offset);
                     entryList = input.ReadUShortArray(cols);
                 }
             }
             else
             {
-                List<byte> unlz = RomDecode.UnlzFromOffset(input, offset, out _lenght);
-                for (int i = 0; i < unlz.Count/2; i++)
+                byte[] unlz = RomDecode.LzUncompress(input, offset);
+                for (int i = 0; i < unlz.Length / 2; i++)
                 {
                     UInt16 temp = unlz[(2*i)];
                     temp |= (UInt16) ((unlz[1 + (i*2)]) << 8);
@@ -90,15 +89,13 @@ namespace Single.Graphics
             }
             for (int i = 0; i < cols; i++)
             {
-                var red = (UInt16) ((entryList[i] & 31)*8);
-                var green = (UInt16) (((entryList[i] & 992) >> 5)*8);
-                var blue = (UInt16) (((entryList[i] & 31744) >> 10)*8);
-                _entries[i] = Color.FromArgb(red, green, blue);
+                _entries[i] = new PaletteEntry(entryList[i]);
             }
             if (_entries.Length != cols)
             {
                 throw new Exception("Die angegebene Palette hat nicht die angegebene Anzahl an Farben");
             }
+            _lenght = GetRawData().Length;
             _origSize = GetSize();
         }
 
@@ -117,15 +114,10 @@ namespace Single.Graphics
         /// <returns>Byte Array mit Daten, die so im Rom stehen würden</returns>
         public byte[] GetRawData()
         {
-            var output = new List<byte>();
-            foreach (Color c in _entries)
+            List<byte> output = new List<byte>();
+            foreach (PaletteEntry c in _entries)
             {
-                var r = (byte) (Math.Floor((c.R/8.0)));
-                var g = (byte)(Math.Floor((c.G / 8.0)));
-                var b = (byte)(Math.Floor((c.B / 8.0)));
-                var colorEntry = (UInt16) (r | ((g << 5) | (b << 10)));
-                output.Add((byte) (colorEntry & 0xFF));
-                output.Add((byte) ((colorEntry & 0xFF00) >> 8));
+                output.AddRange(BitConverter.GetBytes(c.Data));
             }
             return !IsEncoded ? output.ToArray() : RomDecode.LzCompressData(output.ToArray());
         }

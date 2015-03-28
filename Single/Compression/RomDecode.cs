@@ -9,8 +9,6 @@ namespace Single.Compression
     {
         #region Constants
 
-        public const byte LOOKAHEAD_WINDOW = 18;
-
         private const int SLIDING_WINDOW_SIZE = 4096;
         private const int READ_AHEAD_BUFFER_SIZE = 18;
         private const int BLOCK_SIZE = 8;
@@ -58,24 +56,11 @@ namespace Single.Compression
         /// <param name="input">Rom Objekt in welchem sich die zu dekomprimierenden Daten befinden</param>
         /// <param name="offset">Position der Daten im Rom Objekt</param>
         /// <returns>Liste mit dekomprimierten Byte Werten</returns>
-        public static List<Byte> UnlzFromOffset(Rom input, UInt32 offset)
-        {
-            int outLenght;
-            var ms = new MemoryStream(input.RawData) {Position = offset};
-            return Unlz(ms, out outLenght);
-        }
-
-        /// <summary>
-        ///     Dekomprimiert ein LZ77 Objekt im Rom input, an Position Offset und übermittelt die Größe der komprimierten Daten
-        /// </summary>
-        /// <param name="input">Rom Objekt in welchem sich die zu dekomprimierenden Daten befinden</param>
-        /// <param name="offset">Position der Daten im Rom Objekt</param>
-        /// <param name="compressedLenght">Länge der komprimierten Daten</param>
-        /// <returns>Liste mit dekomprimierten Byte Werten</returns>
-        public static List<Byte> UnlzFromOffset(Rom input, UInt32 offset, out int compressedLenght)
+        [Obsolete("Use the new Method LzUncompress and its overloads")]
+        public static byte[] UnlzFromOffset(Rom input, UInt32 offset)
         {
             var ms = new MemoryStream(input.RawData) {Position = offset};
-            return Unlz(ms, out compressedLenght);
+            return Unlz(ms);
         }
 
         /// <summary>
@@ -83,23 +68,11 @@ namespace Single.Compression
         /// </summary>
         /// <param name="input">Komprimiertes LZ77 Objekt</param>
         /// <returns>Liste mit dekomprimierten Byte Werten</returns>
-        public static List<Byte> UnlzData(byte[] input)
-        {
-            int outLenght;
-            var ms = new MemoryStream(input);
-            return Unlz(ms, out outLenght);
-        }
-
-        /// <summary>
-        ///     Dekomprimiert ein LZ77 Objekt aus dem byte input und übermittelt die Größe der komprimierten Daten
-        /// </summary>
-        /// <param name="input">Komprimiertes LZ77 Objekt</param>
-        /// <param name="compressedLenght">Länge der komprimierten Daten</param>
-        /// <returns>Liste mit dekomprimierten Byte Werten</returns>
-        public static List<Byte> UnlzData(byte[] input, out int compressedLenght)
+        [Obsolete("Use the new Method LzUncompress and its overloads")]
+        public static byte[] UnlzData(byte[] input)
         {
             var ms = new MemoryStream(input);
-            return Unlz(ms, out compressedLenght);
+            return Unlz(ms);
         }
 
         private static unsafe byte[] Compress(BinaryReader br, int offset, int lenght)
@@ -256,14 +229,14 @@ namespace Single.Compression
             return true;
         }
 
-        private static List<Byte> Unlz(Stream input, out int compressedLenght)
+        [Obsolete("Use the new Method LzUncompress and its overloads")]
+        private static byte[] Unlz(Stream input)
         {
             long op = input.Position;
             if (!CanBeUnCompressed(input, (int) input.Position))
                 throw new Exception(string.Format("Der angegebene Byte-Stream kann nicht dekomprimiert werden: 0x{0}", op.ToString("X")));
             var output = new List<Byte>();
             input.Position = op;
-            long position = input.Position;
             {
                 var bw = new BinaryReader(input);
                 UInt32 lzhead = bw.ReadUInt32();
@@ -284,7 +257,6 @@ namespace Single.Compression
                             UInt16 b1 = Convert.ToUInt16(input.ReadByte() << 8);
                             UInt16 b2 = bw.ReadByte();
                             UInt16 codec = Convert.ToUInt16(b1 | b2);
-
                             UInt16 backsize = Convert.ToUInt16((codec & 4095) + 1);
                             UInt16 backlenght = Convert.ToUInt16((codec >> 12) + 3);
                             var backbuffer = new List<Byte>();
@@ -305,10 +277,35 @@ namespace Single.Compression
                 } while (output.Count < lenght);
                 int removing = output.Count - (int) lenght;
                 output.RemoveRange((int) lenght, removing);
-                compressedLenght = (int) (input.Position - position - removing);
             }
+            return output.ToArray();
+        }
+
+        public static byte[] LzUncompress(Stream input)
+        {
+            BinaryReader reader = new BinaryReader(input);
+            int size = (int) reader.ReadUInt32() >> 8;
+
+            List<byte> outputList = new List<byte>();
+            while (outputList.Count < size)
+            {
+                LzCompound compound = new LzCompound(reader);
+                compound.Decode(outputList);
+            }
+            byte[] output = new byte[size];
+            
+            Buffer.BlockCopy(outputList.ToArray(), 0, output, 0, size);
             return output;
         }
+
+        public static byte[] LzUncompress(Rom input, uint offset)
+        {
+            input.SetStreamOffset(offset);
+            return LzUncompress(input.Stream);
+        }
+
+
+
         #endregion
     }
 }

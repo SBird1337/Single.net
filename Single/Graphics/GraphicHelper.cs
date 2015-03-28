@@ -103,7 +103,7 @@ namespace Single.Graphics
                 Marshal.Copy(bytes, 0, data.Scan0, bytes.Length);
                 indexedBitmap.UnlockBits(data);
             }
-            pal = new Palette(colors.ToArray());
+            pal = new Palette(colors.Select(col => new PaletteEntry(col.R, col.G, col.B)).ToArray());
             Palette p;
             return Tileset.FromBitmap(indexedBitmap, isEncoded, out p, out map);
         }

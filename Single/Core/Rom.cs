@@ -83,6 +83,11 @@ namespace Single.Core
             get { return _rawdata; }
         }
 
+        public Stream Stream
+        {
+            get { return _romstream; }
+        }
+
         public long CurrentPosition
         {
             get { return _romstream.Position; }

@@ -12,6 +12,10 @@
     <TargetFrameworkVersion>v3.5</TargetFrameworkVersion>
     <FileAlignment>512</FileAlignment>
     <TargetFrameworkProfile />
+    <SccProjectName>SAK</SccProjectName>
+    <SccLocalPath>SAK</SccLocalPath>
+    <SccAuxPath>SAK</SccAuxPath>
+    <SccProvider>SAK</SccProvider>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
     <DebugSymbols>true</DebugSymbols>
@@ -38,13 +42,18 @@
     <Reference Include="System.Drawing" />
   </ItemGroup>
   <ItemGroup>
+    <Compile Include="Compression\CompressedEntry.cs" />
+    <Compile Include="Compression\ILzEntry.cs" />
+    <Compile Include="Compression\LzCompound.cs" />
     <Compile Include="Compression\RomDecode.cs" />
+    <Compile Include="Compression\NormalEntry.cs" />
     <Compile Include="Core.Text\IEscapeSequence.cs" />
     <Compile Include="Core.Text\IEscapeSequenceProvider.cs" />
     <Compile Include="Core.Text\LongEscape.cs" />
     <Compile Include="Core.Text\SingleEscapes.cs" />
     <Compile Include="Core.Text\TableEntry.cs" />
     <Compile Include="Extensions\ArrayExtensions.cs" />
+    <Compile Include="Graphics\PaletteEntry.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />
     <Compile Include="Core.Text\HexEncoder.cs" />
     <Compile Include="Core.Text\IParseInformationProvider.cs" />

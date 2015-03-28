@@ -60,7 +60,7 @@ namespace Single.Graphics
         /// <param name="offset">Position der Daten</param>
         public Tilemap(Rom input, uint offset)
         {
-            byte[] data = RomDecode.UnlzFromOffset(input, offset).ToArray();
+            byte[] data = RomDecode.LzUncompress(input, offset);
             var ms = new MemoryStream(data);
             var br = new BinaryReader(ms);
             var tmap = new List<UInt16>();

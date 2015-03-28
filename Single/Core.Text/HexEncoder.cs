@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Single.Core.Text
+﻿namespace Single.Core.Text
 {
     public class HexEncoder
     {

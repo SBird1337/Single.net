@@ -108,7 +108,7 @@ namespace Single.Graphics
             {
                 int y = i/8;
                 int x = i%8;
-                output.SetPixel(x, y, pal.Entries[colorentries[i]]);
+                output.SetPixel(x, y, pal.Entries[colorentries[i]].ToColor());
             }
             return output;
         }
