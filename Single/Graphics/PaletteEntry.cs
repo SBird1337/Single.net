@@ -25,7 +25,7 @@ namespace Single.Graphics
 
         public Color ToColor()
         {
-            return Color.FromArgb(Data & 0x1F, (Data >> 8) & 0x1F, Data >> 16);
+            return Color.FromArgb((Data & 0x1F) * 8, ((Data >> 8) & 0x1F) * 8, (Data >> 16) * 8);
         }
     }
 }
