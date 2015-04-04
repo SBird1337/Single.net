@@ -79,7 +79,8 @@ namespace Single.Graphics
             }
             else
             {
-                byte[] unlz = RomDecode.LzUncompress(input, offset);
+                long origSize;
+                byte[] unlz = RomDecode.LzUncompress(input, offset, out origSize);
                 for (int i = 0; i < unlz.Length / 2; i++)
                 {
                     UInt16 temp = unlz[(2*i)];

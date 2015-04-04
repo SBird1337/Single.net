@@ -30,7 +30,7 @@ namespace Single.Graphics
 
         #region Constructors
 
-        private Tileset(IEnumerable<byte> data, bool isEncoded, bool is8Bpp = false, bool isRepointable = false, uint initoffset = 0)
+        private Tileset(IEnumerable<byte> data, bool isEncoded, bool is8Bpp = false, bool isRepointable = false, uint initoffset = 0, long origSize = 0)
         {
             _is8Bpp = is8Bpp;
             _isRepointable = isRepointable;
@@ -54,7 +54,7 @@ namespace Single.Graphics
             }
             if (isRepointable)
             {
-                _origSize = GetSize();
+                _origSize = (int)origSize;
             }
         }
 
@@ -224,11 +224,13 @@ namespace Single.Graphics
         /// <param name="input">Rom mit den komprimierten Tileset Daten</param>
         /// <param name="offset">Offset der komprimierten Tileset Daten</param>
         /// <param name="is8Bpp">Wenn True: Es wird versucht ein 8bpp Tileset zu erstellen</param>
+        /// <param name="isRepointable">Gibt an ob das Tileset mit für den Repoint wichtigen Daten gespeichert wird</param>
         /// <returns>Tileset Objekt</returns>
-        public static Tileset FromCompressedAddress(Rom input, UInt32 offset, bool is8Bpp = false)
+        public static Tileset FromCompressedAddress(Rom input, UInt32 offset, bool is8Bpp = false, bool isRepointable = false)
         {
-            byte[] tiledata = RomDecode.LzUncompress(input, offset);
-            return new Tileset(tiledata.ToArray(), true, is8Bpp, true, offset);
+            long origSize;
+            byte[] tiledata = RomDecode.LzUncompress(input, offset, out origSize);
+            return new Tileset(tiledata, true, is8Bpp, true, offset, origSize);
         }
 
         /// <summary>

@@ -281,9 +281,10 @@ namespace Single.Compression
             return output.ToArray();
         }
 
-        public static byte[] LzUncompress(Stream input)
+        public static byte[] LzUncompress(Stream input, out long length)
         {
             BinaryReader reader = new BinaryReader(input);
+            long originalPosition = input.Position;
             int size = (int) reader.ReadUInt32() >> 8;
 
             List<byte> outputList = new List<byte>();
@@ -295,13 +296,14 @@ namespace Single.Compression
             byte[] output = new byte[size];
             
             Buffer.BlockCopy(outputList.ToArray(), 0, output, 0, size);
+            length = input.Position - originalPosition;
             return output;
         }
 
-        public static byte[] LzUncompress(Rom input, uint offset)
+        public static byte[] LzUncompress(Rom input, uint offset, out long length)
         {
             input.SetStreamOffset(offset);
-            return LzUncompress(input.Stream);
+            return LzUncompress(input.Stream, out length);
         }
 
 

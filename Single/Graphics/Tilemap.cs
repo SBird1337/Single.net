@@ -60,7 +60,8 @@ namespace Single.Graphics
         /// <param name="offset">Position der Daten</param>
         public Tilemap(Rom input, uint offset)
         {
-            byte[] data = RomDecode.LzUncompress(input, offset);
+            long origSize;
+            byte[] data = RomDecode.LzUncompress(input, offset, out origSize);
             var ms = new MemoryStream(data);
             var br = new BinaryReader(ms);
             var tmap = new List<UInt16>();
@@ -74,7 +75,7 @@ namespace Single.Graphics
                 tmap.Add(br.ReadUInt16());
             }
             Initialize(tmap.ToArray());
-            _origSize = GetSize();
+            _origSize = (int)origSize;
         }
 
         /// <summary>
